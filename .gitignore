@@ -205,3 +205,17 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
+tmp
+coverage-reports
+coverage*
+.DS_Store
+
+# DuckDB database files
+*.duckdb
+prs_analytics.duckdb
