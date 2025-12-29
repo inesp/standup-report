@@ -1,0 +1,23 @@
+query GetMyOwnPRs($searchQuery: String!)
+{
+  search(query: $searchQuery, type: ISSUE, first: 100) {
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    nodes {
+      ... on PullRequest {
+        number
+        title
+        url
+        state
+        createdAt
+        updatedAt
+        mergedAt
+        repository {
+          nameWithOwner
+        }
+      }
+    }
+  }
+}

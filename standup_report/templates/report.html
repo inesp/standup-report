@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+{% set state_emoji = {'OPEN': '⏳', 'MERGED': '🚀', 'CLOSED': '⛔'} %}
+
+<!--- General version -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+  <div class="p-6">
+    <h2 class="text-lg font-bold mb-3">Done</h2>
+    <div class="mb-6">
+      {% for pr in my_prs %}
+      <p class="mb-1">
+        {{ state_emoji[pr.state] }}
+        [{{ pr.repo_slug }}]
+        {% if pr.created_at > since and pr.state != 'CLOSED' %}created{% elif pr.state == 'MERGED' %}merged{% else %}worked on{% endif %}
+        <a href="{{ pr.url }}" class="text-blue-600 hover:underline">PR #{{ pr.number }} {{ pr.title }}</a>
+        <span class="text-gray-400">- {{ pr.last_change_ago }}</span>
+      </p>
+      {% endfor %}
+    </div>
+
+    <h2 class="text-lg font-bold mb-3">Next</h2>
+    <div>
+      {% for pr in my_prs if pr.state == 'OPEN' %}
+      <p class="mb-1">
+        🔨
+        [{{ pr.repo_slug }}]
+        continue working on
+        <a href="{{ pr.url }}" class="text-blue-600 hover:underline">PR #{{ pr.number }} {{ pr.title }}</a>
+        <span class="text-gray-400">- {{ pr.last_change_ago }}</span>
+      </p>
+      {% else %}
+      <p class="text-gray-500">No open PRs</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+
