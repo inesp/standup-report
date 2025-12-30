@@ -2,12 +2,14 @@ import logging
 from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
+from operator import attrgetter
 
 from flask import Blueprint
 from flask import render_template
 
 from standup_report import github
 from standup_report.pr_type import OwnPR
+from standup_report.pr_type import PRState
 from standup_report.settings import get_settings
 
 report_bp = Blueprint("report", __name__)
@@ -19,14 +21,18 @@ logger = logging.getLogger(__name__)
 def build_report(hours: int = 24) -> str:
     time_ago = datetime.now(UTC) - timedelta(hours=hours)
 
-    my_prs: list[OwnPR] = list(github.fetch_authored_prs(time_ago))
+    my_latest_prs: list[OwnPR] = list(github.fetch_authored_prs(time_ago))
     my_open_prs: list[OwnPR] = list(github.fetch_authored_open_prs())
+
+    # sort: first MERGED PRs, inside sort by last_change
+    my_latest_prs = sorted(my_latest_prs, key=attrgetter('last_change'))
+    my_latest_prs = sorted(my_latest_prs, key=lambda pr: pr.state == PRState.MERGED, reverse=True)
 
     return render_template(
         "report.html",
         title="Standup Report",
         subtitle=_build_subtitle(hours, time_ago),
-        my_latest_prs=my_prs,
+        my_latest_prs=my_latest_prs,
         my_open_prs=my_open_prs,
         since=time_ago,
         hours=hours,
