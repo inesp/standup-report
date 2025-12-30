@@ -219,3 +219,5 @@ coverage*
 # DuckDB database files
 *.duckdb
 prs_analytics.duckdb
+
+config.yml
