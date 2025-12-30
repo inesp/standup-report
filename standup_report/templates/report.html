@@ -1,5 +1,35 @@
 {% extends "base.html" %}
 
+{% set header_before %}
+  <!--- Timeframe selector -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <div class="flex items-center gap-4">
+      <span class="font-medium text-gray-700">Show activity from last:</span>
+      <div class="flex gap-2">
+      {% set time_options = [
+        (8, "8 hours"),
+        (24, "24 hours"),
+        (48, "48 hours"),
+        (72, "3 days"),
+        (168, "1 week"),
+        (336, "2 weeks")
+      ] %}
+      {% for value, label in time_options %}
+      <a href="/report/{{ value }}" 
+         onclick="this.innerHTML = '<span class=\'inline-block animate-spin\'>⏳</span> Loading...'; this.classList.add('opacity-50', 'cursor-wait')"
+         class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors
+                {% if hours == value %}
+                bg-blue-600 text-white hover:bg-blue-700
+                {% else %}
+                bg-gray-100 text-gray-700 hover:bg-gray-200
+                {% endif %}">
+        {{ label }}
+      </a>
+      {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endset %}
 
 {% block content %}
 {% set state_emoji = {'OPEN': '⏳', 'MERGED': '🚀', 'CLOSED': '⛔'} %}
@@ -13,7 +43,7 @@
       <p class="mb-1">
         {{ state_emoji[pr.state] }}
         [{{ pr.repo_slug }}]
-        {% if pr.created_at > since and pr.state != 'CLOSED' %}created{% elif pr.state == 'MERGED' %}merged{% else %}worked on{% endif %}
+        {% if pr.state == 'MERGED' %}merged{% elif pr.created_at > since and pr.state != 'CLOSED' %} created{% else %}worked on{% endif %}
         <a href="{{ pr.url }}" class="text-blue-600 hover:underline">PR #{{ pr.number }} {{ pr.title }}</a>
         <span class="text-gray-400">- {{ pr.last_change_ago }}</span>
       </p>
