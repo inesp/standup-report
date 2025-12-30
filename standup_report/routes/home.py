@@ -12,7 +12,7 @@ home_bp = Blueprint("home", __name__)
 
 
 @home_bp.route("/")
-def index():
+def index() -> str:
     gh_query = "{ viewer { login } }"
     gh_response = None
     gh_exc: None | GitHubException = None

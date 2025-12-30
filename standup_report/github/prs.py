@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Iterable
 from datetime import datetime
 
 from standup_report.date_utils import parse_str_to_date
@@ -8,6 +9,7 @@ from standup_report.github.client import GHResponse
 from standup_report.github.gql_utils import extract_gql_query_from_file
 from standup_report.github.gql_utils import parse_page_info
 from standup_report.pr_type import OwnPR
+from standup_report.pr_type import PRReviewDecision
 from standup_report.pr_type import PRState
 from standup_report.settings import get_settings
 
@@ -18,7 +20,24 @@ THasMorePages = bool
 TAfterCursor = str | None
 
 
-def fetch_authored_prs(oldest_updated_at: datetime):
+def fetch_authored_prs(oldest_updated_at: datetime) -> Iterable[OwnPR]:
+    user_login_name = get_settings().GH_USERNAME
+
+    oldest_updated_at_str: str = oldest_updated_at.strftime("%Y-%m-%dT%H:%M:%SZ")
+    search_query: str = (
+        f"author:{user_login_name} is:pr updated:>{oldest_updated_at_str} sort:updated"
+    )
+    yield from _fetch_prs_by_query(search_query)
+
+
+def fetch_authored_open_prs() -> Iterable[OwnPR]:
+    user_login_name = get_settings().GH_USERNAME
+
+    search_query: str = f"author:{user_login_name} is:pr state:open sort:updated"
+    yield from _fetch_prs_by_query(search_query)
+
+
+def _fetch_prs_by_query(search_query: str) -> Iterable[OwnPR]:
     logger.info("---------- Fetching PRs I've worked on in the last 24h")
     authored_prs_query: str = extract_gql_query_from_file(
         "standup_report/github/prs.graphql"
@@ -28,49 +47,49 @@ def fetch_authored_prs(oldest_updated_at: datetime):
     # You can't construct a query using more than five AND, OR, or NOT operators
     # https://docs.github.com/en/search-github/getting-started-with-searching-on-github/troubleshooting-search-queries
 
-    # maye also: mentions:USERNAME??
-
-    # reviews:
-    # 	is:pr commenter:@me matches pull requests you have commented on.
-
     has_more_pages: THasMorePages = True
-    after_cursor: TAfterCursor = None
-
-    user_login_name = get_settings().GH_USERNAME
-
-    oldest_updated_at_str: str = oldest_updated_at.strftime("%Y-%m-%dT%H:%M:%SZ")
-    search_query: str = (
-        f"author:{user_login_name} is:pr updated:>{oldest_updated_at_str} sort:updated"
-    )
+    ignored_repos = get_settings().IGNORED_REPOS
 
     while has_more_pages:
         one_page_response = client.post_gql_query(
             query=authored_prs_query,
             variables={"searchQuery": search_query},
         )
-        yield from _process_one_page_of_prs(one_page_response, user_login_name)
-        has_more_pages, after_cursor = _extract_page_info(one_page_response)
+        yield from _process_one_page_of_prs(one_page_response, ignored_repos)
+        has_more_pages, _ = _extract_page_info(one_page_response)
 
 
-def _process_one_page_of_prs(response: GHResponse, user_login_name: str):
+def _process_one_page_of_prs(
+    response: GHResponse, ignored_repos: set[str]
+) -> Iterable[OwnPR]:
     raw_prs: list[dict] = response.data["search"]["nodes"]
 
     for pr_data in raw_prs:
+        number: int = pr_data["number"]
+        repo_slug: str = pr_data["repository"]["nameWithOwner"]
+        if repo_slug in ignored_repos:
+            logger.info(f"Ignoring PR #{number} in {repo_slug}")
+            continue
+
         raw_state = pr_data["state"]
+        state: PRState = PRState.from_string(raw_state)  # type: ignore[assignment]
+        raw_review_decision = pr_data["reviewDecision"]
         pr = OwnPR(
-            number=pr_data["number"],
-            repo_slug=pr_data["repository"]["nameWithOwner"],
+            number=number,
+            repo_slug=repo_slug,
             title=pr_data["title"],
             url=pr_data["url"],
-            author=user_login_name,
             created_at=parse_str_to_date(pr_data["createdAt"]),
             merged_at=(
                 parse_str_to_date(pr_data["mergedAt"]) if pr_data["mergedAt"] else None
             ),
-            state=PRState[raw_state] if raw_state in PRState else None,
+            state=state,
             last_change=parse_str_to_date(pr_data["updatedAt"]),
+            review_decision=PRReviewDecision.from_string(raw_review_decision),
         )
-        logger.info(f"Found PR(number={pr.number}), url={pr.url}, {pr.title=}")
+        logger.info(
+            f"Found PR(number={pr.number}), {pr.title=} {repo_slug=} {pr_data["reviewDecision"]}"
+        )
         yield pr
 
 

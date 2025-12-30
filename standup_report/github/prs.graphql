@@ -17,6 +17,10 @@ query GetMyOwnPRs($searchQuery: String!)
         repository {
           nameWithOwner
         }
+        author {
+          login
+        }
+        reviewDecision
       }
     }
   }

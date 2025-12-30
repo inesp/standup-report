@@ -20,7 +20,7 @@ class Settings:
     GH_LOGIN: str
     GH_TOKEN: str
     GH_USERNAME: str
-    REPOSITORIES: list[tuple[str, str]]
+    IGNORED_REPOS: set[str]
 
     @property
     def as_dict(self) -> dict[str, str | int | list[str]]:
@@ -45,24 +45,26 @@ def _load_yaml_config() -> dict[str, Any]:
         return {}
 
 
-
 @cache
 def get_settings() -> Settings:
     gh_token = os.getenv("GH_API_TOKEN")
     gh_login = os.getenv("GH_LOGIN")
-    gh_user_login = os.getenv("GH_USERNAME")  # this could be the same as GH_LOGIN or it can not be
+    gh_user_login = os.getenv(
+        "GH_USERNAME"
+    )  # this could be the same as GH_LOGIN or it can not be
 
     if not gh_token or not gh_login or not gh_user_login:
-        raise SettingsError("GH_API_TOKEN and GH_LOGIN and GH_USERNAME must be set in .env")
+        raise SettingsError(
+            "GH_API_TOKEN and GH_LOGIN and GH_USERNAME must be set in .env"
+        )
 
     config = _load_yaml_config()
 
-    raw_repos = config.get("repositories", [])
-    repositories = [(one_repo["owner"], one_repo["name"]) for one_repo in raw_repos]
+    ignored_repos = config.get("ignored_repos", [])
 
     return Settings(
         GH_LOGIN=gh_login,
         GH_TOKEN=gh_token,
         GH_USERNAME=gh_user_login,
-        REPOSITORIES=repositories,
+        IGNORED_REPOS=set(ignored_repos),
     )

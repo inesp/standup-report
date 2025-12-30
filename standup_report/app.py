@@ -14,7 +14,7 @@ logging.basicConfig(
 )
 
 
-def create_app():
+def create_app() -> Flask:
     """Application factory pattern"""
     app = Flask(__name__)
 

@@ -95,7 +95,7 @@ def make_rest_request(
     *,
     query_params: dict | None = None,
     json: dict | None = None,
-):
+) -> GHResponse:
     token = get_settings().GH_TOKEN
     full_url: str = _build_full_url(url_path, query_params)
     logger.info(f"Calling Github REST {full_url=}")
@@ -127,10 +127,5 @@ def make_rest_request(
 
     if response_data is None:
         raise GitHubException("Response was None", url=full_url)
-
-    # errors: https://docs.github.com/en/rest/overview/resources-in-the-rest-api#client-errors
-    if isinstance(response_data, dict):
-        message = response_data.get("message")
-        raise GitHubException(f"Response error: `{message}`", url=full_url)
 
     return GHResponse(data=response_data, response=response)

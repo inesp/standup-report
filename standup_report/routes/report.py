@@ -13,18 +13,21 @@ from standup_report.settings import get_settings
 report_bp = Blueprint("report", __name__)
 logger = logging.getLogger(__name__)
 
+
 @report_bp.route("/report")
 @report_bp.route("/report/<int:hours>")
-def build_report(hours: int = 24):
+def build_report(hours: int = 24) -> str:
     time_ago = datetime.now(UTC) - timedelta(hours=hours)
 
     my_prs: list[OwnPR] = list(github.fetch_authored_prs(time_ago))
+    my_open_prs: list[OwnPR] = list(github.fetch_authored_open_prs())
 
     return render_template(
         "report.html",
         title="Standup Report",
         subtitle=_build_subtitle(hours, time_ago),
-        my_prs=my_prs,
+        my_latest_prs=my_prs,
+        my_open_prs=my_open_prs,
         since=time_ago,
         hours=hours,
         settings=get_settings(),
@@ -34,12 +37,13 @@ def build_report(hours: int = 24):
 ONE_DAY_HOURS = 24
 ONE_WEEK_HOURS = 7 * 24
 
-def _build_subtitle(hours: int, time_ago: datetime)-> str:
+
+def _build_subtitle(hours: int, time_ago: datetime) -> str:
     weeks = hours // ONE_WEEK_HOURS
     remaining_hours = hours % ONE_WEEK_HOURS
     days = remaining_hours // ONE_DAY_HOURS
     remaining_hours = remaining_hours % ONE_DAY_HOURS
-    
+
     parts = []
     if weeks:
         parts.append(f"{weeks}w")
@@ -47,6 +51,6 @@ def _build_subtitle(hours: int, time_ago: datetime)-> str:
         parts.append(f"{days}d")
     if remaining_hours:
         parts.append(f"{remaining_hours}h")
-    
+
     time_label = " ".join(parts) if parts else "0h"
     return f"What I did in the last {time_label} (since: {time_ago.strftime('%Y-%m-%d %H:%M:%S UTC')})"
