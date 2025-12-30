@@ -6,7 +6,7 @@ class SettingsError(StandupReportError):
     """Raised when configuration/settings are invalid"""
 
 
-class GitHubException(StandupReportError):
+class RemoteException(StandupReportError):
     def __init__(
         self,
         msg: str,

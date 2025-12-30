@@ -20,6 +20,7 @@ class Settings:
     GH_LOGIN: str
     GH_TOKEN: str
     GH_USERNAME: str
+    LINEAR_TOKEN: str
     IGNORED_REPOS: set[str]
 
     @property
@@ -53,9 +54,11 @@ def get_settings() -> Settings:
         "GH_USERNAME"
     )  # this could be the same as GH_LOGIN or it can not be
 
-    if not gh_token or not gh_login or not gh_user_login:
+    linear_token = os.getenv("LINEAR_TOKEN")
+
+    if not gh_token or not gh_login or not gh_user_login or not linear_token:
         raise SettingsError(
-            "GH_API_TOKEN and GH_LOGIN and GH_USERNAME must be set in .env"
+            "GH_API_TOKEN and GH_LOGIN and GH_USERNAME and LINEAR_TOKEN must be set in .env"
         )
 
     config = _load_yaml_config()
@@ -66,5 +69,6 @@ def get_settings() -> Settings:
         GH_LOGIN=gh_login,
         GH_TOKEN=gh_token,
         GH_USERNAME=gh_user_login,
+        LINEAR_TOKEN=linear_token,
         IGNORED_REPOS=set(ignored_repos),
     )

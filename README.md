@@ -9,6 +9,9 @@ Looks at my last PRs and tickets and collects notes on the fly and create a Slac
 ```bash
 GH_API_TOKEN=your_github_token_here
 GH_LOGIN=your_github_username
+...
 ```
 
 Get your [API access token from GitHub](https://github.com/settings/tokens).
+
+Get your [Personal API key from Linea](https://linear.app/settings/account/security).

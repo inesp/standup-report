@@ -5,12 +5,12 @@ from datetime import datetime
 from standup_report.date_utils import parse_str_to_date
 from standup_report.dict_utils import safe_traverse
 from standup_report.github import client
-from standup_report.github.client import GHResponse
-from standup_report.github.gql_utils import extract_gql_query_from_file
-from standup_report.github.gql_utils import parse_page_info
 from standup_report.pr_type import OwnPR
 from standup_report.pr_type import PRReviewDecision
 from standup_report.pr_type import PRState
+from standup_report.remote.base_client import GQLResponse
+from standup_report.remote.gql_utils import extract_gql_query_from_file
+from standup_report.remote.gql_utils import parse_page_info
 from standup_report.settings import get_settings
 
 logger = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ def _fetch_prs_by_query(search_query: str) -> Iterable[OwnPR]:
     ignored_repos = get_settings().IGNORED_REPOS
 
     while has_more_pages:
-        one_page_response = client.post_gql_query(
+        one_page_response = client.post_github_gql_query(
             query=authored_prs_query,
             variables={"searchQuery": search_query},
         )
@@ -60,7 +60,7 @@ def _fetch_prs_by_query(search_query: str) -> Iterable[OwnPR]:
 
 
 def _process_one_page_of_prs(
-    response: GHResponse, ignored_repos: set[str]
+    response: GQLResponse, ignored_repos: set[str]
 ) -> Iterable[OwnPR]:
     raw_prs: list[dict] = response.data["search"]["nodes"]
 
@@ -94,7 +94,7 @@ def _process_one_page_of_prs(
 
 
 def _extract_page_info(
-    one_page_response: GHResponse,
+    one_page_response: GQLResponse,
 ) -> tuple[THasMorePages, TAfterCursor]:
     pr_data: dict | None = safe_traverse(one_page_response.data, "search")
     return parse_page_info(pr_data)

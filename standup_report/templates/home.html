@@ -14,6 +14,7 @@
           <li><code class="code-yellow">GH_API_TOKEN</code> - Your GitHub personal access token</li>
           <li><code class="code-yellow">GH_LOGIN</code> - The GitHub username who can use the token</li>
           <li><code class="code-yellow">GH_USERNAME</code> - Your GitHub username, the author of PRs</li>
+          <li><code class="code-yellow">LINEAR_TOKEN</code> - Your Linear personal API key</li>
         </ul>
       </div>
     </div>
@@ -48,6 +49,28 @@
         <p class="text-sm text-red-800 mb-2">GQL query <code class="code-red ">{{ gh_query }}</code>.</p>
         {% if gh_exc %}
           <code class="code-red text-red-800 rounded text-xs block mb-2">{{ gh_exc.user_error_desc() }}</code>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Linear Connection Status -->
+  {% set linear_ok = linear_response and not linear_exc %}
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div class="flex items-center mb-4">
+      <div class="w-3 h-3 {% if gh_ok %}bg-green-500{% else %}bg-red-500{% endif %} rounded-full mr-3"></div>
+      <h3 class="text-lg font-semibold text-gray-900">Linear Connection</h3>
+      <span class="ml-auto {% if gh_ok %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} text-xs font-medium px-2 py-1 rounded">{% if linear_ok %}Connected{% else %}Error{% endif %}</span>
+    </div>
+
+    {% if linear_ok %}
+      <div class="text-sm text-gray-600 mb-2">Successfully received Linear response:</div>
+      <code class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm">{{ linear_response }}</code>
+    {% else %}
+      <div class="bg-red-50 border border-red-200 rounded p-3">
+        <p class="text-sm text-red-800 mb-2">Linear query <code class="code-red ">{{ linear_query }}</code>.</p>
+        {% if linear_exc %}
+          <code class="code-red text-red-800 rounded text-xs block mb-2">{{ linear_exc.user_error_desc() }}</code>
         {% endif %}
       </div>
     {% endif %}

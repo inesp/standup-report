@@ -1,6 +1,6 @@
 from requests import Response
 
-from standup_report.exceptions import GitHubException
+from standup_report.exceptions import RemoteException
 
 
 def check_status_code_of_response(response: Response) -> None:
@@ -9,7 +9,7 @@ def check_status_code_of_response(response: Response) -> None:
 
     short_response_text: str = str(response.text)[:200]
 
-    raise GitHubException(
+    raise RemoteException(
         f"Provider returned code: {response.status_code} "
         f"for {response.request.method} url {response.request.url}. "
         f"Response.text: {short_response_text}"

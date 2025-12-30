@@ -8,17 +8,14 @@ from standup_report.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
-_GQL_URL = "https://api.github.com/graphql"
+_GQL_URL = "https://api.linear.app/graphql"
 
 
-def post_github_gql_query(query: str, variables: dict | None = None) -> GQLResponse:
-    token = get_settings().GH_TOKEN
+def post_linear_gql_query(query: str, variables: dict | None = None) -> GQLResponse:
+    token = get_settings().LINEAR_TOKEN
     return post_gql_query(
         gql_url=_GQL_URL,
-        headers={
-            "Accept": "application/vnd.github.moondragon+json",
-            "Authorization": f"Bearer {token}",
-        },
+        headers={"Authorization": str(token)},
         query=query,
         variables=variables,
     )
