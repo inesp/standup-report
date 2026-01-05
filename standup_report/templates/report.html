@@ -35,18 +35,26 @@
 {% set state_emoji = {'OPEN': '⏳', 'MERGED': '🚀', 'CLOSED': '⛔'} %}
 {% set review_emoji = {'APPROVED': '✅', 'CHANGES_REQUESTED': '🔄', 'REVIEW_REQUIRED': '🧐'} %}
 
-<!--- General version -->
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
   <div class="p-6">
     <h2 class="text-lg font-bold mb-3">Done</h2>
     <div class="mb-6">
+      <!--- PRs --->
       {% for pr in my_latest_prs %}
-      <p class="mb-1">
-        {{ state_emoji[pr.state] }}
-        [{{ pr.repo_slug }}]
-        {% if pr.state == 'MERGED' %}merged{% elif pr.created_at > since and pr.state != 'CLOSED' %} created{% else %}worked on{% endif %}
-        <a href="{{ pr.url }}" class="text-blue-600 hover:underline">PR #{{ pr.number }} {{ pr.title }}</a>
-      </p>
+        <p class="mb-1">
+          {{ state_emoji[pr.state] }}
+          [{{ pr.repo_slug }}]
+          {% if pr.state == 'MERGED' %}merged{% elif pr.created_at > since and pr.state != 'CLOSED' %} created{% else %}worked on{% endif %}
+          <a href="{{ pr.url }}" class="text-blue-600 hover:underline">PR #{{ pr.number }} {{ pr.title }}</a>
+        </p>
+      {% endfor %}
+      <!--- Issues --->
+      {% for issue in my_linear_activity %}
+        <p class="mb-1">
+          {{ issue.activity }} - {{ issue.state }}
+          <a href="{{ issue.url }}" class="text-blue-600 hover:underline">{{ issue.ident }} {{ issue.title }}</a>
+          - {{ issue.last_change_ago }} {{ issue.activity_at }}
+        </p>
       {% endfor %}
     </div>
 

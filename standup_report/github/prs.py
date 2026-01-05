@@ -2,6 +2,7 @@ import logging
 from collections.abc import Iterable
 from datetime import datetime
 
+from standup_report.date_utils import parse_datetime_to_str
 from standup_report.date_utils import parse_str_to_date
 from standup_report.dict_utils import safe_traverse
 from standup_report.github import client
@@ -9,6 +10,8 @@ from standup_report.pr_type import OwnPR
 from standup_report.pr_type import PRReviewDecision
 from standup_report.pr_type import PRState
 from standup_report.remote.base_client import GQLResponse
+from standup_report.remote.gql_utils import TAfterCursor
+from standup_report.remote.gql_utils import THasMorePages
 from standup_report.remote.gql_utils import extract_gql_query_from_file
 from standup_report.remote.gql_utils import parse_page_info
 from standup_report.settings import get_settings
@@ -16,14 +19,10 @@ from standup_report.settings import get_settings
 logger = logging.getLogger(__name__)
 
 
-THasMorePages = bool
-TAfterCursor = str | None
-
-
 def fetch_authored_prs(oldest_updated_at: datetime) -> Iterable[OwnPR]:
     user_login_name = get_settings().GH_USERNAME
 
-    oldest_updated_at_str: str = oldest_updated_at.strftime("%Y-%m-%dT%H:%M:%SZ")
+    oldest_updated_at_str: str = parse_datetime_to_str(oldest_updated_at)
     search_query: str = (
         f"author:{user_login_name} is:pr updated:>{oldest_updated_at_str} sort:updated"
     )

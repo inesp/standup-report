@@ -1,0 +1,44 @@
+from dataclasses import dataclass
+from datetime import datetime
+from enum import IntEnum
+from enum import auto
+
+from standup_report.date_utils import ago
+from standup_report.enum_utils import SafeStrEnum
+
+
+class LinearState(SafeStrEnum):
+    # One of "triage", "backlog", "unstarted", "started", "completed", "canceled".
+    STARTED = auto()
+    COMPLETED = auto()
+    CANCELED = auto()
+
+
+class ActivityType(IntEnum):
+    # These are sorted by importance.
+    # Commenting is the least important. Issue completion is the most important.
+    # We want to show only the most important action for every issue really...
+    UNKNOWN = auto()
+    COMMENTED = auto()
+    CREATED = auto()
+    CANCELED = auto()
+    WORKED_ON = auto()
+    COMPLETED = auto()
+
+
+@dataclass
+class IssueActivity:
+    title: str
+    ident: str
+    url: str
+    activity_type: ActivityType
+    state: LinearState | None
+    activity_at: datetime
+
+    @property
+    def activity(self) -> str:
+        return self.activity_type.name
+
+    @property
+    def last_change_ago(self) -> str:
+        return ago(self.activity_at)

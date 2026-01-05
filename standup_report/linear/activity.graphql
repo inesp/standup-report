@@ -1,0 +1,82 @@
+fragment base_issue_data on Issue{
+  id
+  identifier
+  title
+  url
+  state {
+    type
+  }
+}
+
+
+query GetActivity($email: String!, $gt_date: DateTimeOrDuration!) {
+  # OK: Issues that I have created in the last 24h
+  created_issues: issues(
+    first: 100
+    filter: { creator: { email: { eq: $email } }, createdAt: { gt: $gt_date } }
+  ) {
+    nodes {
+      ...base_issue_data
+      createdAt
+    }
+  }
+
+   # OK: My issues that have been started/completed/cancelled in last 24h
+  state_changed_issues: issues(first: 100
+    filter: {
+          assignee: { email: { eq: $email } }
+          or: [
+              { completedAt: { gt: $gt_date } }
+              { startedAt: { gt: $gt_date } }
+              { canceledAt: { gt: $gt_date } }
+          ]
+      }
+  ){
+      nodes {
+          ...base_issue_data
+          completedAt
+          startedAt
+          canceledAt
+      }
+  }
+
+  # Shows all comments updated by this user.
+  commented_issues: comments(first: 100
+    filter: {
+      user: { email: { eq: $email } }
+      updatedAt: { gt: $gt_date }
+    }
+  ){
+    nodes {
+      updatedAt
+      issue {
+        ...base_issue_data
+      }
+    }
+  }
+
+  # reactions to comments, this is just a different type of comment we also want to track
+  reactions_on_issues: comments(first: 100
+    filter: {
+      reactions:  {
+         updatedAt:  { gt: $gt_date }
+    # The problem is reactions can't be filtered by user, and I don't want to fetch all reactions in last 24h :(
+#            user: { email: { eq: $email } }
+      }
+    }
+  ){
+    nodes {
+      reactions {
+          user {
+              email
+          }
+          updatedAt
+      }
+      issue {
+        ...base_issue_data
+      }
+    }
+  }
+
+
+}

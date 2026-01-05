@@ -8,6 +8,7 @@ from flask import Blueprint
 from flask import render_template
 
 from standup_report import github
+from standup_report import linear
 from standup_report.pr_type import OwnPR
 from standup_report.pr_type import PRState
 from standup_report.settings import get_settings
@@ -24,9 +25,15 @@ def build_report(hours: int = 24) -> str:
     my_latest_prs: list[OwnPR] = list(github.fetch_authored_prs(time_ago))
     my_open_prs: list[OwnPR] = list(github.fetch_authored_open_prs())
 
+    # Ok, KAR RABIM JE: še 1 + list of items kaj sem še drugega delala, z ikono in tako
+
     # sort: first MERGED PRs, inside sort by last_change
-    my_latest_prs = sorted(my_latest_prs, key=attrgetter('last_change'))
-    my_latest_prs = sorted(my_latest_prs, key=lambda pr: pr.state == PRState.MERGED, reverse=True)
+    my_latest_prs = sorted(my_latest_prs, key=attrgetter("last_change"))
+    my_latest_prs = sorted(
+        my_latest_prs, key=lambda pr: pr.state == PRState.MERGED, reverse=True
+    )
+
+    my_linear_activity = list(linear.fetch_user_activity(time_ago))
 
     return render_template(
         "report.html",
@@ -34,6 +41,7 @@ def build_report(hours: int = 24) -> str:
         subtitle=_build_subtitle(hours, time_ago),
         my_latest_prs=my_latest_prs,
         my_open_prs=my_open_prs,
+        my_linear_activity=my_linear_activity,
         since=time_ago,
         hours=hours,
         settings=get_settings(),
