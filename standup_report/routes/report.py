@@ -9,7 +9,7 @@ from flask import render_template
 
 from standup_report import github
 from standup_report import linear
-from standup_report.pr_type import OwnPR
+from standup_report.pr_type import PR
 from standup_report.pr_type import PRState
 from standup_report.settings import get_settings
 
@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 def build_report(hours: int = 24) -> str:
     time_ago = datetime.now(UTC) - timedelta(hours=hours)
 
-    my_latest_prs: list[OwnPR] = list(github.fetch_authored_prs(time_ago))
-    my_open_prs: list[OwnPR] = list(github.fetch_authored_open_prs())
+    my_latest_prs: list[PR] = list(github.fetch_authored_prs(time_ago))
+    my_open_prs: list[PR] = list(github.fetch_authored_open_prs())
 
     # Ok, KAR RABIM JE: še 1 + list of items kaj sem še drugega delala, z ikono in tako
 

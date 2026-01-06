@@ -6,7 +6,7 @@ from standup_report.date_utils import parse_datetime_to_str
 from standup_report.date_utils import parse_str_to_date
 from standup_report.dict_utils import safe_traverse
 from standup_report.github import client
-from standup_report.pr_type import OwnPR
+from standup_report.pr_type import PR
 from standup_report.pr_type import PRReviewDecision
 from standup_report.pr_type import PRState
 from standup_report.remote.base_client import GQLResponse
@@ -19,7 +19,7 @@ from standup_report.settings import get_settings
 logger = logging.getLogger(__name__)
 
 
-def fetch_authored_prs(oldest_updated_at: datetime) -> Iterable[OwnPR]:
+def fetch_authored_prs(oldest_updated_at: datetime) -> Iterable[PR]:
     user_login_name = get_settings().GH_USERNAME
 
     oldest_updated_at_str: str = parse_datetime_to_str(oldest_updated_at)
@@ -29,14 +29,14 @@ def fetch_authored_prs(oldest_updated_at: datetime) -> Iterable[OwnPR]:
     yield from _fetch_prs_by_query(search_query)
 
 
-def fetch_authored_open_prs() -> Iterable[OwnPR]:
+def fetch_authored_open_prs() -> Iterable[PR]:
     user_login_name = get_settings().GH_USERNAME
 
     search_query: str = f"author:{user_login_name} is:pr state:open sort:updated"
     yield from _fetch_prs_by_query(search_query)
 
 
-def _fetch_prs_by_query(search_query: str) -> Iterable[OwnPR]:
+def _fetch_prs_by_query(search_query: str) -> Iterable[PR]:
     logger.info("---------- Fetching PRs I've worked on in the last 24h")
     authored_prs_query: str = extract_gql_query_from_file(
         "standup_report/github/prs.graphql"
@@ -60,7 +60,7 @@ def _fetch_prs_by_query(search_query: str) -> Iterable[OwnPR]:
 
 def _process_one_page_of_prs(
     response: GQLResponse, ignored_repos: set[str]
-) -> Iterable[OwnPR]:
+) -> Iterable[PR]:
     raw_prs: list[dict] = response.data["search"]["nodes"]
 
     for pr_data in raw_prs:
@@ -73,7 +73,7 @@ def _process_one_page_of_prs(
         raw_state = pr_data["state"]
         state: PRState = PRState.from_string(raw_state)  # type: ignore[assignment]
         raw_review_decision = pr_data["reviewDecision"]
-        pr = OwnPR(
+        pr = PR(
             number=number,
             repo_slug=repo_slug,
             title=pr_data["title"],

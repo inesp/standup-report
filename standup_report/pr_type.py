@@ -23,7 +23,7 @@ class PRReviewDecision(SafeStrEnum):
 
 
 @dataclass
-class OwnPR:
+class PR:
     number: int
     repo_slug: str
     title: str
