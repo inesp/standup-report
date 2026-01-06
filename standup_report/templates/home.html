@@ -15,6 +15,7 @@
           <li><code class="code-yellow">GH_LOGIN</code> - The GitHub username who can use the token</li>
           <li><code class="code-yellow">GH_USERNAME</code> - Your GitHub username, the author of PRs</li>
           <li><code class="code-yellow">LINEAR_TOKEN</code> - Your Linear personal API key</li>
+          <li><code class="code-yellow">LINEAR_EMAIL</code> - Your Linear email, the author/assignee/... of issues</li>
         </ul>
       </div>
     </div>
@@ -24,7 +25,7 @@
       <p class="text-sm text-yellow-700 mb-2">Look at <code class="code-yellow">{{ settings.CONFIG_FILE_NAME }}.example</code> for a complete list.</p>
       <div class="bg-white rounded-lg shadow-sm border border-yellow-400 p-3">
         <ul class="text-sm text-yellow-700 space-y-1 mt-1 ml-6 list-disc">
-          <li>List of repositories to look into. The fewer you list, the faster is the script. Default: all repos visible to the token.</li>
+          <li><code class="code-yellow">ignored_repos</code> - List of repos to exclude from the report</li>
         </ul>
       </div>
     </div>
