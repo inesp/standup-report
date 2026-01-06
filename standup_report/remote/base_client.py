@@ -42,7 +42,7 @@ def post_gql_query(
         )
     except Exception as exc:
         logger.warning(f"Exception occurred: {exc}", exc_info=exc)
-        raise RemoteException("Request to GitHub raised an exception") from exc
+        raise RemoteException(f"Request to `{gql_name}` raised an exception") from exc
 
     check_status_code_of_response(response)
     response_data, json_err = extract_json_body(response)

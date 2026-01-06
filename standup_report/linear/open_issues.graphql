@@ -1,0 +1,36 @@
+fragment base_issue_data on Issue{
+  identifier
+  title
+  url
+  state {
+    type
+  }
+  attachments(  # PRs. Because the source is github.
+    first: 50
+    filter: {
+        sourceType: { in: ["github"] }
+    }
+  ) {
+    nodes {
+      url
+      title
+      updatedAt
+    }
+  }
+}
+
+
+query GetOpenIssues($email: String!) {
+  open_issues: issues(
+    first: 100
+    filter: {
+      assignee: { email: { eq: $email } }
+      state: { type: { in: ["started", "unstarted"] } }
+    }
+    orderBy: updatedAt
+  ) {
+    nodes {
+      ...base_issue_data
+    }
+  }
+}

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 from typing import Any
+from typing import cast
 
 import yaml
 
@@ -21,6 +22,7 @@ class Settings:
     GH_TOKEN: str
     GH_USERNAME: str
     LINEAR_TOKEN: str
+    LINEAR_EMAIL: str
     IGNORED_REPOS: set[str]
 
     @property
@@ -48,27 +50,30 @@ def _load_yaml_config() -> dict[str, Any]:
 
 @cache
 def get_settings() -> Settings:
-    gh_token = os.getenv("GH_API_TOKEN")
-    gh_login = os.getenv("GH_LOGIN")
-    gh_user_login = os.getenv(
-        "GH_USERNAME"
-    )  # this could be the same as GH_LOGIN or it can not be
-
-    linear_token = os.getenv("LINEAR_TOKEN")
-
-    if not gh_token or not gh_login or not gh_user_login or not linear_token:
+    required_env_vars: dict[str, str | None] = {
+        "GH_LOGIN": os.getenv("GH_LOGIN"),
+        "GH_API_TOKEN": os.getenv("GH_API_TOKEN"),
+        "GH_USERNAME": os.getenv(
+            "GH_USERNAME"
+        ),  # this could be the same as GH_LOGIN or it can not be
+        "LINEAR_TOKEN": os.getenv("LINEAR_TOKEN"),
+        "LINEAR_EMAIL": os.getenv("LINEAR_EMAIL"),
+    }
+    if missing_vars := [name for name, value in required_env_vars.items() if not value]:
         raise SettingsError(
-            "GH_API_TOKEN and GH_LOGIN and GH_USERNAME and LINEAR_TOKEN must be set in .env"
+            f"Missing environment variable(s): {', '.join(missing_vars)}."
         )
+    env_vars: dict[str, str] = cast(dict[str, str], required_env_vars)
 
     config = _load_yaml_config()
 
     ignored_repos = config.get("ignored_repos", [])
 
     return Settings(
-        GH_LOGIN=gh_login,
-        GH_TOKEN=gh_token,
-        GH_USERNAME=gh_user_login,
-        LINEAR_TOKEN=linear_token,
+        GH_LOGIN=env_vars["GH_LOGIN"],
+        GH_TOKEN=env_vars["GH_API_TOKEN"],
+        GH_USERNAME=env_vars["GH_USERNAME"],
+        LINEAR_TOKEN=env_vars["LINEAR_TOKEN"],
+        LINEAR_EMAIL=env_vars["LINEAR_EMAIL"],
         IGNORED_REPOS=set(ignored_repos),
     )

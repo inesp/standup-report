@@ -16,8 +16,10 @@ from standup_report.remote.base_client import GQLResponse
 from standup_report.remote.gql_utils import TAfterCursor
 from standup_report.remote.gql_utils import THasMorePages
 from standup_report.remote.gql_utils import extract_gql_query_from_file
+from standup_report.settings import get_settings
 
 from . import client
+from .pr_attach import extract_pr_attachments
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +47,12 @@ def fetch_user_activity(oldest_updated_at: datetime) -> list[IssueActivity]:
     activity_by_issue_id: dict[str, IssueActivity] = {}
     oldest_updated_at_str: str = parse_datetime_to_str(oldest_updated_at)
 
+    user_email = get_settings().LINEAR_EMAIL
+
     while has_more_pages:
         one_page_response = client.post_linear_gql_query(
             query=authored_prs_query,
-            variables={"email": "email@email.com", "gt_date": oldest_updated_at_str},
+            variables={"email": user_email, "gt_date": oldest_updated_at_str},
         )
         _process_one_page_of_actions(
             one_page_response, oldest_updated_at, activity_by_issue_id
@@ -173,7 +177,7 @@ def _process_one_issue(
     logger.debug(f"Adding issue {title=} {activity=} {activity_at=}")
     assert isinstance(activity_at, datetime)
 
-    pr_attachments: list[IssueAttachment] = _extract_pr_attachments(raw_issue)
+    pr_attachments: list[IssueAttachment] = extract_pr_attachments(raw_issue)
 
     activity_by_issue_id[issue_key] = IssueActivity(
         title=title,
@@ -212,18 +216,6 @@ def _figure_out_activity(
 
     sorted_activities = sorted(activities.items(), key=lambda x: x[0], reverse=True)
     return sorted_activities[0]
-
-
-def _extract_pr_attachments(raw_issue: dict) -> list[IssueAttachment]:
-    raw_attachments: list[dict] = safe_traverse(raw_issue, "attachments.nodes", [])
-    return [
-        IssueAttachment(
-            url=pr["url"],
-            title=pr["title"],
-            last_updated=parse_str_to_date(pr["updatedAt"]),
-        )
-        for pr in raw_attachments
-    ]
 
 
 def _extract_page_info(

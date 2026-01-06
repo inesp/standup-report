@@ -9,6 +9,7 @@ from flask import render_template
 
 from standup_report import github
 from standup_report import linear
+from standup_report.issue_type import Issue
 from standup_report.issue_type import IssueActivity
 from standup_report.issue_type import LinearState
 from standup_report.pr_type import PR
@@ -35,19 +36,9 @@ def build_report(hours: int = 24) -> str:
         my_latest_prs, key=lambda pr: pr.state == PRState.MERGED, reverse=True
     )
 
-    my_linear_activity: list[IssueActivity] = list(linear.fetch_user_activity(time_ago))
-    # We only want Linear activity that cannot be expressed in PRs. Because PRs are the most important.
-    # So, we will exclude issues that have legit PRs.
-    github_pr_urls: set[str] = {pr.url for pr in my_latest_prs}
-    selected_linear_activity: list[IssueActivity] = [
-        issue
-        for issue in my_linear_activity
-        if not issue.pr_attachment_urls.intersection(github_pr_urls)
-    ]
-
-    my_in_progress_issues: list[IssueActivity] = [
-        issue for issue in my_linear_activity if issue.state == LinearState.STARTED
-    ]
+    selected_linear_activity, selected_open_issues = _fetch_work_on_issues(
+        time_ago, my_latest_prs, my_open_prs
+    )
 
     return render_template(
         "report.html",
@@ -56,7 +47,7 @@ def build_report(hours: int = 24) -> str:
         my_latest_prs=my_latest_prs,
         my_open_prs=my_open_prs,
         my_linear_activity=selected_linear_activity,
-        my_in_progress_issues=my_in_progress_issues,
+        my_in_progress_issues=selected_open_issues,
         since=time_ago,
         hours=hours,
         settings=get_settings(),
@@ -83,3 +74,46 @@ def _build_subtitle(hours: int, time_ago: datetime) -> str:
 
     time_label = " ".join(parts) if parts else "0h"
     return f"What I did in the last {time_label} (since: {time_ago.strftime('%Y-%m-%d %H:%M:%S UTC')})"
+
+
+def _fetch_work_on_issues(
+    time_ago: datetime, my_latest_prs: list[PR], my_open_prs: list[PR]
+) -> tuple[list[IssueActivity], list[Issue]]:
+    my_linear_activity: list[IssueActivity] = list(linear.fetch_user_activity(time_ago))
+    # We only want Linear activity that cannot be expressed in PRs. Because PRs are the most important.
+    # So, we will exclude issues that have legit PRs.
+    github_pr_urls: set[str] = {pr.url for pr in my_latest_prs}
+    selected_linear_activity: list[IssueActivity] = [
+        issue
+        for issue in my_linear_activity
+        if not issue.pr_attachment_urls.intersection(github_pr_urls)
+    ]
+
+    my_open_issues: list[Issue] = list(linear.fetch_in_progress_issues())
+    # Again: remove the ones with known PR
+    github_open_pr_urls: set[str] = {pr.url for pr in my_open_prs}
+    selected_open_issues: list[Issue] = [
+        issue
+        for issue in my_open_issues
+        if not issue.pr_attachment_urls.intersection(github_open_pr_urls)
+    ]
+
+    # sort
+    selected_open_issues = sorted(
+        selected_open_issues, key=lambda issue: issue.state or 0, reverse=True
+    )
+
+    # If we have issues that are in-progress, then let's show only these, otherwise we'll show also todo-issues,
+    # so, issues that aren't in the backlog, but they ARE put into the ToDo
+    if (
+        selected_open_issues
+        and selected_open_issues[0].state
+        and selected_open_issues[0].state >= LinearState.STARTED
+    ):
+        selected_open_issues = [
+            i
+            for i in selected_open_issues
+            if i.state and i.state >= LinearState.STARTED
+        ]
+
+    return selected_linear_activity, selected_open_issues

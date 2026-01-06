@@ -19,6 +19,10 @@ class RemoteException(StandupReportError):
         self.query = query
         self.variables = variables
         self.url = url
+
+        if gql_errors:
+            msg = f"{msg}: {gql_errors}"
+
         super().__init__(msg)
 
     def user_error_desc(self) -> str:

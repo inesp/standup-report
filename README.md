@@ -11,6 +11,7 @@ GH_API_TOKEN=your_github_token_here
 GH_LOGIN=your_github_username
 GH_USERNAME=...
 LINEAR_TOKEN=...
+LINEAR_EMAIL=...
 ```
 
 Get your [API access token from GitHub](https://github.com/settings/tokens).
@@ -20,3 +21,5 @@ Get your [Personal API key from Linea](https://linear.app/settings/account/secur
 ## Examples
 
 ![only_issues.png](assets/only_issues.png)
+
+![example](assets/example_a.png)

@@ -34,6 +34,8 @@ class PR:
     last_change: datetime
     review_decision: PRReviewDecision | None
 
+    issues: list[str] | None = None
+
     @property
     def uid(self) -> str:
         return f"{self.repo_slug}/pull/{self.number}"
