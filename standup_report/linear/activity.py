@@ -30,20 +30,14 @@ def fetch_user_activity(oldest_updated_at: datetime) -> list[IssueActivity]:
         "standup_report/linear/activity.graphql"
     )
 
-    # Ideally, I'd get all the same data as is in Linear's MyIssues > Activity tab
-    # But that isn't readily available. So, what I'm doing is getting:
-    # - created issues and all issue state changes
-    # - all commented on issues
-    #
-    # Activity
-    # The activity tab will show issues with the actions below that have occurred by date.
-    #
-    # issue created
-    # issue updated
-    # assigned issue state changed
-    # issue commented
-    # comment reacted
-    # opened pull request
+    # Ideally, I'd get all the same data as is in
+    #  Linear's MyIssues > Activity tab:
+    #  1. issue created <- OK
+    #  2. issue updated
+    #  3. assigned issue state changed <- OK
+    #  4. issue commented <- OK
+    #  5. comment reacted
+    #  6. opened pull request
 
     has_more_pages: THasMorePages = True
 
@@ -76,7 +70,8 @@ def _process_one_page_of_actions(
     activity_by_issue_id: dict[str, IssueActivity],
 ) -> None:
 
-    raw_created_issues = safe_traverse(response.data, "created_issues.nodes") or []
+    # 1. issue created
+    raw_created_issues = safe_traverse(response.data, "created_issues.nodes", [])
     _process_batch_of_issues(
         raw_created_issues,
         oldest_updated_at,
@@ -84,17 +79,36 @@ def _process_one_page_of_actions(
         activity_type=ActivityType.CREATED,
     )
 
-    raw_updated_issues = (
-        safe_traverse(response.data, "state_changed_issues.nodes") or []
-    )
+    # 2. issue updated
+    # TODO: I think we don't need this, but I might be wrong.
+
+    # 3. assigned issue state changed
+    raw_updated_issues = safe_traverse(response.data, "state_changed_issues.nodes", [])
     _process_batch_of_issues(
         raw_updated_issues, oldest_updated_at, activity_by_issue_id, activity_type=None
     )
 
-    raw_comments: list[dict] = (
-        safe_traverse(response.data, "commented_issues.nodes") or []
+    # 4. issue commented
+    raw_comments: list[dict] = safe_traverse(
+        response.data, "commented_issues.nodes", []
     )
     _process_comments(raw_comments, oldest_updated_at, activity_by_issue_id)
+
+    #  5. comment reacted
+    #
+    # I can't get reactions at all. The problems are:
+    # a) reactions don't have a root field, they are only accessible as a
+    #    sub-field of either 1 specific comment or an issue or ...
+    # b) I can't filter reactions by the author in GQL
+    #
+    # To get reactions, I could fetch ALL comments updated in the last 24h
+    # by ALL people and get their reactions and then in Python filter
+    # if the reaction-author is the current user.
+    # Then I'd need to do the same for Issues, because a user can react to
+    # the issue too.
+
+    # 6. opened pull request
+    # All PRs are fetched with every issue
 
 
 def _process_batch_of_issues(
@@ -158,6 +172,8 @@ def _process_one_issue(
     logger.debug(f"Adding issue {title=} {activity=} {activity_at=}")
     assert isinstance(activity_at, datetime)
 
+    pr_attachments: list[str] = _extract_pr_attachments(raw_issue)
+
     activity_by_issue_id[issue_key] = IssueActivity(
         title=title,
         ident=raw_issue["identifier"],
@@ -165,6 +181,7 @@ def _process_one_issue(
         activity_type=activity,
         state=LinearState.from_string(raw_issue["state"]["type"]),
         activity_at=activity_at,
+        pr_attachments=pr_attachments,
     )
 
 
@@ -194,6 +211,11 @@ def _figure_out_activity(
 
     sorted_activities = sorted(activities.items(), key=lambda x: x[0], reverse=True)
     return sorted_activities[0]
+
+
+def _extract_pr_attachments(raw_issue: dict) -> list[str]:
+    raw_attachments: list[dict] = safe_traverse(raw_issue, "attachments.nodes", [])
+    return [pr["url"] for pr in raw_attachments]
 
 
 def _extract_page_info(

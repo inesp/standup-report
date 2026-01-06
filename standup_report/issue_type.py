@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from dataclasses import field
 from datetime import datetime
 from enum import IntEnum
 from enum import auto
@@ -34,6 +35,7 @@ class IssueActivity:
     activity_type: ActivityType
     state: LinearState | None
     activity_at: datetime
+    pr_attachments: list[str] = field(default_factory=list)
 
     @property
     def activity(self) -> str:
@@ -42,3 +44,4 @@ class IssueActivity:
     @property
     def last_change_ago(self) -> str:
         return ago(self.activity_at)
+

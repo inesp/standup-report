@@ -6,6 +6,17 @@ fragment base_issue_data on Issue{
   state {
     type
   }
+  attachments(  # PRs. Because the source is github.
+    first: 50
+    filter: {
+        sourceType: { in: ["github"] }
+    }
+  ) {
+    nodes {
+      url
+#      title
+    }
+  }
 }
 
 
@@ -54,29 +65,29 @@ query GetActivity($email: String!, $gt_date: DateTimeOrDuration!) {
       }
     }
   }
-
-  # reactions to comments, this is just a different type of comment we also want to track
-  reactions_on_issues: comments(first: 100
-    filter: {
-      reactions:  {
-         updatedAt:  { gt: $gt_date }
-    # The problem is reactions can't be filtered by user, and I don't want to fetch all reactions in last 24h :(
-#            user: { email: { eq: $email } }
-      }
-    }
-  ){
-    nodes {
-      reactions {
-          user {
-              email
-          }
-          updatedAt
-      }
-      issue {
-        ...base_issue_data
-      }
-    }
-  }
+#
+#  # reactions to comments, this is just a different type of comment we also want to track
+#  reactions_on_issues: comments(first: 100
+#    filter: {
+#      reactions:  {
+#         updatedAt:  { gt: $gt_date }
+#    # The problem is reactions can't be filtered by user, and I don't want to fetch all reactions in last 24h :(
+##            user: { email: { eq: $email } }
+#      }
+#    }
+#  ){
+#    nodes {
+#      reactions {
+#          user {
+#              email
+#          }
+#          updatedAt
+#      }
+#      issue {
+#        ...base_issue_data
+#      }
+#    }
+#  }
 
 
 }
