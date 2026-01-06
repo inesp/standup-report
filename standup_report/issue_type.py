@@ -28,6 +28,17 @@ class ActivityType(IntEnum):
 
 
 @dataclass
+class IssueAttachment:
+    url: str
+    title: str
+    last_updated: datetime
+
+    @property
+    def short_title(self) -> str:
+        return self.title.split(":")[0]
+
+
+@dataclass
 class IssueActivity:
     title: str
     ident: str
@@ -35,7 +46,7 @@ class IssueActivity:
     activity_type: ActivityType
     state: LinearState | None
     activity_at: datetime
-    pr_attachments: list[str] = field(default_factory=list)
+    pr_attachments: list[IssueAttachment] = field(default_factory=list)
 
     @property
     def activity(self) -> str:
@@ -45,3 +56,6 @@ class IssueActivity:
     def last_change_ago(self) -> str:
         return ago(self.activity_at)
 
+    @property
+    def pr_attachment_urls(self) -> set[str]:
+        return {a.url for a in self.pr_attachments}

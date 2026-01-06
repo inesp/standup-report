@@ -32,8 +32,9 @@
 {% endset %}
 
 {% block content %}
-{% set state_emoji = {'OPEN': '⏳', 'MERGED': '🚀', 'CLOSED': '⛔'} %}
+{% set pr_state_emoji = {'OPEN': '⏳', 'MERGED': '🚀', 'CLOSED': '⛔'} %}
 {% set review_emoji = {'APPROVED': '✅', 'CHANGES_REQUESTED': '🔄', 'REVIEW_REQUIRED': '🧐'} %}
+{% set activity_emoji = {'CREATED': '✨', 'COMPLETED': '🎉', 'WORKED_ON': '🔨', 'COMMENTED': '💬', 'CANCELED': '🚫', 'UNKNOWN': '❓'} %}
 
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
   <div class="p-6">
@@ -42,18 +43,22 @@
       <!--- PRs --->
       {% for pr in my_latest_prs %}
         <p class="mb-1">
-          {{ state_emoji[pr.state] }}
+          {{ pr_state_emoji[pr.state] }}
           [{{ pr.repo_slug }}]
           {% if pr.state == 'MERGED' %}merged{% elif pr.created_at > since and pr.state != 'CLOSED' %} created{% else %}worked on{% endif %}
-          <a href="{{ pr.url }}" class="text-blue-600 hover:underline">PR #{{ pr.number }} {{ pr.title }}</a>
+          PR <a href="{{ pr.url }}" class="text-blue-600 hover:underline">#{{ pr.number }} {{ pr.title }}</a>
         </p>
       {% endfor %}
       <!--- Issues --->
       {% for issue in my_linear_activity %}
         <p class="mb-1">
-          {{ issue.activity }} - {{ issue.state }}
+          {{ activity_emoji.get(issue.activity, '❓') }}
+          {{ issue.activity|lower|replace('_', ' ') }} issue
           <a href="{{ issue.url }}" class="text-blue-600 hover:underline">{{ issue.ident }} {{ issue.title }}</a>
-          - {{ issue.last_change_ago }} {{ issue.activity_at }}
+          {% if issue.pr_attachments %}
+            <span class="text-gray-500 text-sm">(PR{% if issue.pr_attachments|length > 1 %}s{% endif %}: {% for pr in issue.pr_attachments %}<a href="{{ pr.url }}" class="hover:underline">{{ pr.short_title }}</a>{% if not loop.last %}, {% endif %}{% endfor %})</span>
+          {% endif %}
+          <span class="text-gray-400">- {{ issue.last_change_ago }}</span>
         </p>
       {% endfor %}
     </div>
@@ -61,19 +66,23 @@
     <h2 class="text-lg font-bold mb-3">Next</h2>
     <div>
       {% for pr in my_open_prs %}
-      <p class="mb-1">
-        🔨
-        {% if pr.review_decision %}{{ review_emoji.get(pr.review_decision, '') }}{% endif %}
-        [{{ pr.repo_slug }}]
-        continue working on
-        <a href="{{ pr.url }}" class="text-blue-600 hover:underline">PR #{{ pr.number }} {{ pr.title }}</a>
-        <span class="text-gray-400">- {{ pr.last_change_ago }}</span>
-        {% if pr.review_decision == 'REVIEW_REQUIRED' %}
-        <span class="text-yellow-600 text-sm">(needs review)</span>
-        {% endif %}
-      </p>
-      {% else %}
-      <p class="text-gray-500">No open PRs</p>
+        <p class="mb-1">
+          🔨
+          {% if pr.review_decision %}{{ review_emoji.get(pr.review_decision, '') }}{% endif %}
+          [{{ pr.repo_slug }}]
+          continue working on
+          <a href="{{ pr.url }}" class="text-blue-600 hover:underline">PR #{{ pr.number }} {{ pr.title }}</a>
+          <span class="text-gray-400">- {{ pr.last_change_ago }}</span>
+          {% if pr.review_decision == 'REVIEW_REQUIRED' %}
+          <span class="text-yellow-600 text-sm">(needs review)</span>
+          {% endif %}
+        </p>
+      {% endfor %}
+      {% for issue in my_in_progress_issues %}
+        <p class="mb-1">
+          🔨
+          TODO
+        </p>
       {% endfor %}
     </div>
   </div>

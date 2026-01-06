@@ -10,6 +10,7 @@ from standup_report.date_utils import parse_str_to_date
 from standup_report.dict_utils import safe_traverse
 from standup_report.issue_type import ActivityType
 from standup_report.issue_type import IssueActivity
+from standup_report.issue_type import IssueAttachment
 from standup_report.issue_type import LinearState
 from standup_report.remote.base_client import GQLResponse
 from standup_report.remote.gql_utils import TAfterCursor
@@ -172,7 +173,7 @@ def _process_one_issue(
     logger.debug(f"Adding issue {title=} {activity=} {activity_at=}")
     assert isinstance(activity_at, datetime)
 
-    pr_attachments: list[str] = _extract_pr_attachments(raw_issue)
+    pr_attachments: list[IssueAttachment] = _extract_pr_attachments(raw_issue)
 
     activity_by_issue_id[issue_key] = IssueActivity(
         title=title,
@@ -213,9 +214,16 @@ def _figure_out_activity(
     return sorted_activities[0]
 
 
-def _extract_pr_attachments(raw_issue: dict) -> list[str]:
+def _extract_pr_attachments(raw_issue: dict) -> list[IssueAttachment]:
     raw_attachments: list[dict] = safe_traverse(raw_issue, "attachments.nodes", [])
-    return [pr["url"] for pr in raw_attachments]
+    return [
+        IssueAttachment(
+            url=pr["url"],
+            title=pr["title"],
+            last_updated=parse_str_to_date(pr["updatedAt"]),
+        )
+        for pr in raw_attachments
+    ]
 
 
 def _extract_page_info(

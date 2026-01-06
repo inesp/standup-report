@@ -14,7 +14,8 @@ fragment base_issue_data on Issue{
   ) {
     nodes {
       url
-#      title
+      title
+      updatedAt
     }
   }
 }

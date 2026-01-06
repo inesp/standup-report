@@ -9,6 +9,8 @@ from flask import render_template
 
 from standup_report import github
 from standup_report import linear
+from standup_report.issue_type import IssueActivity
+from standup_report.issue_type import LinearState
 from standup_report.pr_type import PR
 from standup_report.pr_type import PRState
 from standup_report.settings import get_settings
@@ -33,7 +35,19 @@ def build_report(hours: int = 24) -> str:
         my_latest_prs, key=lambda pr: pr.state == PRState.MERGED, reverse=True
     )
 
-    my_linear_activity = list(linear.fetch_user_activity(time_ago))
+    my_linear_activity: list[IssueActivity] = list(linear.fetch_user_activity(time_ago))
+    # We only want Linear activity that cannot be expressed in PRs. Because PRs are the most important.
+    # So, we will exclude issues that have legit PRs.
+    github_pr_urls: set[str] = {pr.url for pr in my_latest_prs}
+    selected_linear_activity: list[IssueActivity] = [
+        issue
+        for issue in my_linear_activity
+        if not issue.pr_attachment_urls.intersection(github_pr_urls)
+    ]
+
+    my_in_progress_issues: list[IssueActivity] = [
+        issue for issue in my_linear_activity if issue.state == LinearState.STARTED
+    ]
 
     return render_template(
         "report.html",
@@ -41,7 +55,8 @@ def build_report(hours: int = 24) -> str:
         subtitle=_build_subtitle(hours, time_ago),
         my_latest_prs=my_latest_prs,
         my_open_prs=my_open_prs,
-        my_linear_activity=my_linear_activity,
+        my_linear_activity=selected_linear_activity,
+        my_in_progress_issues=my_in_progress_issues,
         since=time_ago,
         hours=hours,
         settings=get_settings(),
