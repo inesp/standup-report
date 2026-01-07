@@ -23,7 +23,7 @@ def create_app() -> Flask:
 
     @app.errorhandler(StandupReportError)
     def handle_error(error):
-        """Handle all PR Analytics specific errors"""
+        """Handle all StandupReportError errors"""
         logger.error(f"StandupReportError: {error}")
         return (
             render_template(
