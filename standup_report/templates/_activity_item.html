@@ -1,0 +1,31 @@
+{% set ISSUE_ACTIVITY_CLASS_NAME = 'IssueActivity' %}
+{% set PR_CLASS_NAME = 'PR' %}
+
+{% set pr_state_emoji = {'OPEN': '⏳', 'MERGED': '🚀', 'CLOSED': '⛔'} %}
+{% set activity_emoji = {'CREATED': '✨', 'COMPLETED': '🎉', 'WORKED_ON': '🔨', 'COMMENTED': '💬', 'CANCELED': '🚫', 'UNKNOWN': '❓'} %}
+
+
+{% if item.__class__.__name__ == PR_CLASS_NAME %}
+  {% set emoji = pr_state_emoji[item.state] %}
+{% elif item.__class__.__name__ == ISSUE_ACTIVITY_CLASS_NAME %}
+  {% set emoji = activity_emoji.get(item.activity, '❓') %}
+{% endif %}
+
+
+<p class="mb-1">
+  {{ emoji }}
+{% if item.__class__.__name__ == PR_CLASS_NAME %}
+  [{{ item.repo_slug }}]
+  {% if item.state == 'MERGED' %}merged{% elif item.created_at > since and item.state != 'CLOSED' %}created{% else %}worked on{% endif %}
+  PR <a href="{{ item.url }}" class="text-blue-600 hover:underline">#{{ item.number }} {{ item.title }}</a>
+{% elif item.__class__.__name__ == ISSUE_ACTIVITY_CLASS_NAME %}
+  {{ item.activity|lower|replace('_', ' ') }} issue
+  <a href="{{ item.url }}" class="text-blue-600 hover:underline">{{ item.long_title }}</a>
+  {% if item.pr_attachments %}
+    <span class="text-gray-500 text-sm">(PR{% if item.pr_attachments|length > 1 %}s{% endif %}: {% for pr in item.pr_attachments %}<a href="{{ pr.url }}" class="hover:underline">{{ pr.short_title }}</a>{% if not loop.last %}, {% endif %}{% endfor %})</span>
+  {% endif %}
+{% else %}
+  Not implemented
+{% endif %}
+  <span class="text-gray-400">- {{ item.last_change_ago }}</span>
+</p>

@@ -40,13 +40,17 @@ def build_report(hours: int = 24) -> str:
         time_ago, my_latest_prs, my_open_prs
     )
 
+    done_activity: list[PR | IssueActivity] = [
+        *my_latest_prs,
+        *selected_linear_activity,
+    ]
+
     return render_template(
         "report.html",
         title="Standup Report",
         subtitle=_build_subtitle(hours, time_ago),
-        my_latest_prs=my_latest_prs,
+        done_activity=done_activity,
         my_open_prs=my_open_prs,
-        my_linear_activity=selected_linear_activity,
         my_in_progress_issues=selected_open_issues,
         since=time_ago,
         hours=hours,
