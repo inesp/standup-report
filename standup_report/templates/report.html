@@ -15,7 +15,7 @@
         (336, "2 weeks")
       ] %}
       {% for value, label in time_options %}
-      <a href="/report/{{ value }}" 
+      <a href="/report/{{ value }}"
          onclick="this.innerHTML = '<span class=\'inline-block animate-spin\'>⏳</span> Loading...'; this.classList.add('opacity-50', 'cursor-wait')"
          class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors
                 {% if hours == value %}
@@ -27,6 +27,14 @@
       </a>
       {% endfor %}
       </div>
+    </div>
+    <div class="flex items-center gap-6 mt-3 pt-3 border-t border-gray-200">
+      {% with filter_text="Show timestamps", filter_id="show-timestamps" %}
+        {% include '_filter.html' %}
+      {% endwith %}
+      {% with filter_text="Show created issues", filter_id="show-created" %}
+        {% include '_filter.html' %}
+      {% endwith %}
     </div>
   </div>
 {% endset %}
@@ -51,6 +59,25 @@
 </div>
 
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const showTimestamps = document.getElementById('show-timestamps');
+  const showCreated = document.getElementById('show-created');
+
+  showTimestamps.addEventListener('change', () => {
+    document.querySelectorAll('.last-change-ago').forEach(el => {
+      el.classList.toggle('hidden', !showTimestamps.checked);
+    });
+  });
+
+  showCreated.addEventListener('change', () => {
+    document.querySelectorAll('.activity-item.item-created-issue').forEach(el => {
+      el.classList.toggle('hidden', !showCreated.checked);
+    });
+  });
+</script>
 {% endblock %}
 
 

@@ -21,7 +21,7 @@
   [{{ item.repo_slug }}]
   continue working on
   <a href="{{ item.url }}" class="text-blue-600 hover:underline">PR #{{ item.number }} {{ item.title }}</a>
-  <span class="text-gray-400">- {{ item.last_change_ago }}</span>
+  <span class="text-gray-400 last-change-ago">- {{ item.last_change_ago }}</span>
   {% if item.review_decision == 'REVIEW_REQUIRED' %}
   <span class="text-yellow-600 text-sm">(needs review)</span>
   {% endif %}

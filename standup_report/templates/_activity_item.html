@@ -4,15 +4,21 @@
 {% set pr_state_emoji = {'OPEN': '⏳', 'MERGED': '🚀', 'CLOSED': '⛔'} %}
 {% set activity_emoji = {'CREATED': '✨', 'COMPLETED': '🎉', 'WORKED_ON': '🔨', 'COMMENTED': '💬', 'CANCELED': '🚫', 'UNKNOWN': '❓'} %}
 
-
+{# choose emoji #}
 {% if item.__class__.__name__ == PR_CLASS_NAME %}
   {% set emoji = pr_state_emoji[item.state] %}
 {% elif item.__class__.__name__ == ISSUE_ACTIVITY_CLASS_NAME %}
   {% set emoji = activity_emoji.get(item.activity, '❓') %}
 {% endif %}
 
+{# choose item-class #}
+{% if item.__class__.__name__ == ISSUE_ACTIVITY_CLASS_NAME and item.activity == 'CREATED' %}
+  {% set item_class = "item-created-issue" %}
+{% else %}
+  {% set item_class = "" %}
+{% endif %}
 
-<p class="mb-1">
+<p class="mb-1 activity-item {{ item_class }} ">
   {{ emoji }}
 {% if item.__class__.__name__ == PR_CLASS_NAME %}
   [{{ item.repo_slug }}]
@@ -27,5 +33,5 @@
 {% else %}
   Not implemented
 {% endif %}
-  <span class="text-gray-400">- {{ item.last_change_ago }}</span>
+  <span class="text-gray-400 last-change-ago">- {{ item.last_change_ago }}</span>
 </p>
