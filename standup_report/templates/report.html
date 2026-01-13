@@ -15,7 +15,7 @@
         (336, "2 weeks")
       ] %}
       {% for value, label in time_options %}
-      <a href="/report/{{ value }}" 
+      <a href="/report/{{ value }}"
          onclick="this.innerHTML = '<span class=\'inline-block animate-spin\'>⏳</span> Loading...'; this.classList.add('opacity-50', 'cursor-wait')"
          class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors
                 {% if hours == value %}
@@ -28,13 +28,21 @@
       {% endfor %}
       </div>
     </div>
+    <div class="flex items-center gap-6 mt-3 pt-3 border-t border-gray-200">
+      {% with filter_text="Show timestamps", filter_id="show-timestamps" %}
+        {% include '_filter.html' %}
+      {% endwith %}
+      {% with filter_text="Show created issues", filter_id="show-created" %}
+        {% include '_filter.html' %}
+      {% endwith %}
+      {% with filter_text="To Slack format", filter_id="slack-format", checked=false %}
+        {% include '_filter.html' %}
+      {% endwith %}
+    </div>
   </div>
 {% endset %}
 
 {% block content %}
-{% set review_emoji = {'APPROVED': '✅', 'CHANGES_REQUESTED': '🔄', 'REVIEW_REQUIRED': '🧐'} %}
-{% set issue_state_emoji = {'UNSTARTED': '🤍', 'STARTED': '🌱', 'CANCELED': '🚫', 'COMPLETED': '🎉'} %}
-
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
   <div class="p-6">
     <h2 class="text-lg font-bold mb-3">Done</h2>
@@ -46,29 +54,43 @@
 
     <h2 class="text-lg font-bold mb-3">Next</h2>
     <div>
-      {% for pr in my_open_prs %}
-        <p class="mb-1">
-          {% if pr.review_decision %}{{ review_emoji.get(pr.review_decision, '') }}{% else %}🔨{% endif %}
-          [{{ pr.repo_slug }}]
-          continue working on
-          <a href="{{ pr.url }}" class="text-blue-600 hover:underline">PR #{{ pr.number }} {{ pr.title }}</a>
-          <span class="text-gray-400">- {{ pr.last_change_ago }}</span>
-          {% if pr.review_decision == 'REVIEW_REQUIRED' %}
-          <span class="text-yellow-600 text-sm">(needs review)</span>
-          {% endif %}
-        </p>
-      {% endfor %}
-      {% for issue in my_in_progress_issues %}
-        <p class="mb-1">
-          {{ issue_state_emoji.get(issue.state.name, '') }} continue working on
-          <a href="{{ issue.url }}" class="text-blue-600 hover:underline">{{ issue.long_title }}</a>
-        </p>
+      {% for item in next_activity %}
+        {% include '_next_item.html' %}
       {% endfor %}
     </div>
   </div>
 </div>
 
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const showTimestamps = document.getElementById('show-timestamps');
+  const showCreated = document.getElementById('show-created');
+  const slackFormat = document.getElementById('slack-format');
+
+  showTimestamps.addEventListener('change', () => {
+    document.querySelectorAll('.last-change-ago').forEach(el => {
+      el.classList.toggle('hidden', !showTimestamps.checked);
+    });
+  });
+
+  showCreated.addEventListener('change', () => {
+    document.querySelectorAll('.activity-item.item-created-issue').forEach(el => {
+      el.classList.toggle('hidden', !showCreated.checked);
+    });
+  });
+
+  slackFormat.addEventListener('change', () => {
+    document.querySelectorAll('.original-link').forEach(el => {
+      el.classList.toggle('hidden', slackFormat.checked);
+    });
+    document.querySelectorAll('.slack-link').forEach(el => {
+      el.classList.toggle('hidden', !slackFormat.checked);
+    });
+  });
+</script>
 {% endblock %}
 
 
