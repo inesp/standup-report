@@ -20,14 +20,14 @@
 {% if item.__class__.__name__ == PR_CLASS_NAME %}
   [{{ item.repo_slug }}]
   continue working on
-  <a href="{{ item.url }}" class="text-blue-600 hover:underline">PR #{{ item.number }} {{ item.title }}</a>
+  {% with link_url=item.url, link_text="PR #" ~ item.number ~ " " ~ item.title %}{% include '_link_with_slack.html' %}{% endwith %}
   <span class="text-gray-400 last-change-ago">- {{ item.last_change_ago }}</span>
   {% if item.review_decision == 'REVIEW_REQUIRED' %}
   <span class="text-yellow-600 text-sm">(needs review)</span>
   {% endif %}
 {% elif item.__class__.__name__ == ISSUE_CLASS_NAME %}
   continue working on
-  <a href="{{ item.url }}" class="text-blue-600 hover:underline">{{ item.long_title }}</a>
+  {% with link_url=item.url, link_text=item.long_title %}{% include '_link_with_slack.html' %}{% endwith %}
 {% else %}
   Not implemented
 {% endif %}

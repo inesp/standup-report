@@ -35,6 +35,9 @@
       {% with filter_text="Show created issues", filter_id="show-created" %}
         {% include '_filter.html' %}
       {% endwith %}
+      {% with filter_text="To Slack format", filter_id="slack-format", checked=false %}
+        {% include '_filter.html' %}
+      {% endwith %}
     </div>
   </div>
 {% endset %}
@@ -65,6 +68,7 @@
 <script>
   const showTimestamps = document.getElementById('show-timestamps');
   const showCreated = document.getElementById('show-created');
+  const slackFormat = document.getElementById('slack-format');
 
   showTimestamps.addEventListener('change', () => {
     document.querySelectorAll('.last-change-ago').forEach(el => {
@@ -75,6 +79,15 @@
   showCreated.addEventListener('change', () => {
     document.querySelectorAll('.activity-item.item-created-issue').forEach(el => {
       el.classList.toggle('hidden', !showCreated.checked);
+    });
+  });
+
+  slackFormat.addEventListener('change', () => {
+    document.querySelectorAll('.original-link').forEach(el => {
+      el.classList.toggle('hidden', slackFormat.checked);
+    });
+    document.querySelectorAll('.slack-link').forEach(el => {
+      el.classList.toggle('hidden', !slackFormat.checked);
     });
   });
 </script>
