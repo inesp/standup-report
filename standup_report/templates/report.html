@@ -32,9 +32,6 @@
 {% endset %}
 
 {% block content %}
-{% set review_emoji = {'APPROVED': '✅', 'CHANGES_REQUESTED': '🔄', 'REVIEW_REQUIRED': '🧐'} %}
-{% set issue_state_emoji = {'UNSTARTED': '🤍', 'STARTED': '🌱', 'CANCELED': '🚫', 'COMPLETED': '🎉'} %}
-
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
   <div class="p-6">
     <h2 class="text-lg font-bold mb-3">Done</h2>
@@ -46,23 +43,8 @@
 
     <h2 class="text-lg font-bold mb-3">Next</h2>
     <div>
-      {% for pr in my_open_prs %}
-        <p class="mb-1">
-          {% if pr.review_decision %}{{ review_emoji.get(pr.review_decision, '') }}{% else %}🔨{% endif %}
-          [{{ pr.repo_slug }}]
-          continue working on
-          <a href="{{ pr.url }}" class="text-blue-600 hover:underline">PR #{{ pr.number }} {{ pr.title }}</a>
-          <span class="text-gray-400">- {{ pr.last_change_ago }}</span>
-          {% if pr.review_decision == 'REVIEW_REQUIRED' %}
-          <span class="text-yellow-600 text-sm">(needs review)</span>
-          {% endif %}
-        </p>
-      {% endfor %}
-      {% for issue in my_in_progress_issues %}
-        <p class="mb-1">
-          {{ issue_state_emoji.get(issue.state.name, '') }} continue working on
-          <a href="{{ issue.url }}" class="text-blue-600 hover:underline">{{ issue.long_title }}</a>
-        </p>
+      {% for item in next_activity %}
+        {% include '_next_item.html' %}
       {% endfor %}
     </div>
   </div>

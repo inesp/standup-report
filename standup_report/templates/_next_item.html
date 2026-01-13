@@ -1,0 +1,34 @@
+{% set ISSUE_CLASS_NAME = 'Issue' %}
+{% set PR_CLASS_NAME = 'PR' %}
+
+{% set review_emoji = {'APPROVED': '✅', 'CHANGES_REQUESTED': '🔄', 'REVIEW_REQUIRED': '🧐'} %}
+{% set issue_state_emoji = {'UNSTARTED': '🤍', 'STARTED': '🌱', 'CANCELED': '🚫', 'COMPLETED': '🎉'} %}
+
+{# choose emoji #}
+{% if item.__class__.__name__ == PR_CLASS_NAME %}
+  {% if item.review_decision %}
+    {% set emoji = review_emoji.get(item.review_decision, '') %}
+  {% else %}
+    {% set emoji = '🔨' %}
+  {% endif %}
+{% elif item.__class__.__name__ == ISSUE_CLASS_NAME %}
+  {% set emoji = issue_state_emoji.get(item.state.name, '') %}
+{% endif %}
+
+<p class="mb-1">
+  {{ emoji }}
+{% if item.__class__.__name__ == PR_CLASS_NAME %}
+  [{{ item.repo_slug }}]
+  continue working on
+  <a href="{{ item.url }}" class="text-blue-600 hover:underline">PR #{{ item.number }} {{ item.title }}</a>
+  <span class="text-gray-400">- {{ item.last_change_ago }}</span>
+  {% if item.review_decision == 'REVIEW_REQUIRED' %}
+  <span class="text-yellow-600 text-sm">(needs review)</span>
+  {% endif %}
+{% elif item.__class__.__name__ == ISSUE_CLASS_NAME %}
+  continue working on
+  <a href="{{ item.url }}" class="text-blue-600 hover:underline">{{ item.long_title }}</a>
+{% else %}
+  Not implemented
+{% endif %}
+</p>
