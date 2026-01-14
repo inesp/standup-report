@@ -144,7 +144,7 @@ def _fetch_work_on_issues(
     return selected_linear_activity, selected_open_issues
 
 
-def _get_item_key_for_ignoring(
+def _get_item_key_for_ignoring(  # noqa: RET503
     pr_or_issue: PR | Issue,
 ) -> tuple[ItemType, str]:
     if isinstance(pr_or_issue, PR):

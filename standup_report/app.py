@@ -2,6 +2,7 @@ import logging
 
 from flask import Flask
 from flask import render_template
+from werkzeug.exceptions import HTTPException
 
 from standup_report.exceptions import StandupReportError
 from standup_report.routes.db import db
@@ -26,7 +27,7 @@ def create_app() -> Flask:
     app.register_blueprint(ignore_api)
 
     @app.errorhandler(StandupReportError)
-    def handle_error(error):
+    def handle_error(error: StandupReportError) -> tuple[str, int]:
         """Handle all StandupReportError errors"""
         logger.error(f"StandupReportError: {error}")
         return (
@@ -52,7 +53,7 @@ def create_app() -> Flask:
     @app.errorhandler(414)
     @app.errorhandler(415)
     @app.errorhandler(429)
-    def handle_client_errors(error):
+    def handle_client_errors(error: HTTPException) -> tuple[str, int]:
         """Handle all 4XX client errors"""
         error_messages = {
             400: ("Bad Request", "The request could not be understood by the server."),
@@ -101,24 +102,25 @@ def create_app() -> Flask:
             ),
         }
 
+        code = error.code or 400
         error_title, error_message = error_messages.get(
-            error.code, ("Client Error", "An error occurred with your request.")
+            code, ("Client Error", "An error occurred with your request.")
         )
 
         return (
             render_template(
                 "404.html",
-                title=f"{error.code} {error_title}",
-                error_code=error.code,
+                title=f"{code} {error_title}",
+                error_code=code,
                 error_title=error_title,
                 error_message=error_message,
                 show_header_title=False,
             ),
-            error.code,
+            code,
         )
 
     @app.errorhandler(500)
-    def handle_server_error(error):
+    def handle_server_error(error: HTTPException) -> tuple[str, int]:
         """Handle generic server errors"""
         logger.error(f"Server error: {error}")
         return (
