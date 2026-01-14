@@ -4,7 +4,9 @@ from flask import Flask
 from flask import render_template
 
 from standup_report.exceptions import StandupReportError
+from standup_report.routes.db import db
 from standup_report.routes.home import home_bp
+from standup_report.routes.ignore_api import ignore_api
 from standup_report.routes.report import report_bp
 
 logger = logging.getLogger(__name__)
@@ -19,6 +21,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
 
     app.register_blueprint(home_bp)
+    app.register_blueprint(db)
     app.register_blueprint(report_bp)
 
     @app.errorhandler(StandupReportError)
