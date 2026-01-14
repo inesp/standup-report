@@ -26,7 +26,17 @@ def get_connection():
 
 
 # Table definitions
-TABLE_SCHEMAS = {}
+TABLE_SCHEMAS = {
+    "ignored_items": """
+        CREATE TABLE IF NOT EXISTS ignored_items (
+            item_type VARCHAR NOT NULL,
+            item_id VARCHAR NOT NULL,
+            item_title VARCHAR NOT NULL,
+            ignored_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (item_type, item_id)
+        )
+    """
+}
 
 
 def create_tables():
@@ -83,7 +93,7 @@ def health_check() -> HealthState:
             table_names: list[str] = [table[0] for table in tables]
 
             row_counts: dict[str, int] = {}
-            for table_name in ["prs", "reviews"]:
+            for table_name in ["ignored_items"]:
                 if table_name in table_names:
                     count = conn.execute(
                         f"SELECT COUNT(*) FROM {table_name}"
