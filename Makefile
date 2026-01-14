@@ -9,6 +9,4 @@ upgrade-py:
 	uv lock --upgrade
 
 lint: ## Lint code
-	uv run ruff check --fix .
-	uv run black .
-	uv run mypy .
+	uv run ruff check --fix .; uv run black . ; uv run mypy .
