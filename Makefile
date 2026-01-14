@@ -8,5 +8,5 @@ up-flask-local: ## Stands up flask
 upgrade-py:
 	uv lock --upgrade
 
-lint: ## Lint code
-	uv run ruff check --fix .; uv run black . ; uv run mypy .
+lint: ## Lint and format all code
+	uv run ruff check --fix .; uv run black . ; uv run mypy . ; npm run format

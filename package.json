@@ -1,0 +1,11 @@
+{
+  "name": "standup-report",
+  "private": true,
+  "scripts": {
+    "format": "prettier --write 'standup_report/static/**/*.js'",
+    "format:check": "prettier --check 'standup_report/static/**/*.js'"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0"
+  }
+}
