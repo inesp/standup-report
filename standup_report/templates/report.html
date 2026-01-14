@@ -29,6 +29,9 @@
       </div>
     </div>
     <div class="flex items-center gap-6 mt-3 pt-3 border-t border-gray-200">
+      {% with filter_text="Show ignore btns", filter_id="show-ignore-btns", checked=false %}
+        {% include '_filter.html' %}
+      {% endwith %}
       {% with filter_text="Show timestamps", filter_id="show-timestamps" %}
         {% include '_filter.html' %}
       {% endwith %}

@@ -1,6 +1,13 @@
+const showIgnoreBtns = document.getElementById('show-ignore-btns');
 const showTimestamps = document.getElementById('show-timestamps');
 const showCreated = document.getElementById('show-created');
 const slackFormat = document.getElementById('slack-format');
+
+showIgnoreBtns.addEventListener('change', () => {
+  document.querySelectorAll('.ignore-btn').forEach(el => {
+    el.classList.toggle('hidden', !showIgnoreBtns.checked);
+  });
+});
 
 showTimestamps.addEventListener('change', () => {
   document.querySelectorAll('.last-change-ago').forEach(el => {
