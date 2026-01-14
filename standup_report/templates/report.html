@@ -43,6 +43,9 @@
 {% endset %}
 
 {% block content %}
+
+<div class="error-placeholder"></div>
+
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
   <div class="p-6">
     <h2 class="text-lg font-bold mb-3">Done</h2>
@@ -58,6 +61,21 @@
         {% include '_next_item.html' %}
       {% endfor %}
     </div>
+
+    <div id="ignored-section" class="{% if not ignored_items %}hidden{% endif %}">
+      <h2 class="text-lg font-bold mb-3 mt-6 text-gray-500">Ignored</h2>
+      <div id="ignored-list" class="opacity-60">
+        {% for item_type, item_id, item_title in ignored_items %}
+          <p class="mb-1">
+            <button class="unignore-btn mr-4 text-red-500 hover:text-red-500 font-bold text-lg"
+              data-item-type="{{ item_type }}"
+              data-item-id="{{ item_id }}"
+              title="Unignore"
+            >➕</button> {{ item_type }} {{ item_id }} {{ item_title }}
+          </p>
+        {% endfor %}
+      </div>
+    </div>
   </div>
 </div>
 
@@ -65,32 +83,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-  const showTimestamps = document.getElementById('show-timestamps');
-  const showCreated = document.getElementById('show-created');
-  const slackFormat = document.getElementById('slack-format');
-
-  showTimestamps.addEventListener('change', () => {
-    document.querySelectorAll('.last-change-ago').forEach(el => {
-      el.classList.toggle('hidden', !showTimestamps.checked);
-    });
-  });
-
-  showCreated.addEventListener('change', () => {
-    document.querySelectorAll('.activity-item.item-created-issue').forEach(el => {
-      el.classList.toggle('hidden', !showCreated.checked);
-    });
-  });
-
-  slackFormat.addEventListener('change', () => {
-    document.querySelectorAll('.original-link').forEach(el => {
-      el.classList.toggle('hidden', slackFormat.checked);
-    });
-    document.querySelectorAll('.slack-link').forEach(el => {
-      el.classList.toggle('hidden', !slackFormat.checked);
-    });
-  });
-</script>
+<script src="{{ url_for('static', filename='js/report.js') }}"></script>
 {% endblock %}
 
 

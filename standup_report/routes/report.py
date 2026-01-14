@@ -7,8 +7,10 @@ from operator import attrgetter
 from flask import Blueprint
 from flask import render_template
 
+from standup_report import duckdb_client
 from standup_report import github
 from standup_report import linear
+from standup_report.ignore_mixin import ItemType
 from standup_report.issue_type import Issue
 from standup_report.issue_type import IssueActivity
 from standup_report.issue_type import LinearState
@@ -40,13 +42,28 @@ def build_report(hours: int = 24) -> str:
         time_ago, my_latest_prs, my_open_prs
     )
 
-    done_activity: list[PR | IssueActivity] = [
+    all_done: list[PR | IssueActivity] = [
         *my_latest_prs,
         *selected_linear_activity,
     ]
-    next_activity: list[PR | Issue] = [
+    all_next: list[PR | Issue] = [
         *my_open_prs,
         *selected_open_issues,
+    ]
+
+    ignored_items: set[tuple[ItemType, str, str]] = duckdb_client.get_ignored_items()
+    ignored_keys: set[tuple[ItemType, str]] = {
+        (item_type, item_id) for item_type, item_id, _ in ignored_items
+    }
+    done_activity = [
+        pr_or_issue
+        for pr_or_issue in all_done
+        if _get_item_key_for_ignoring(pr_or_issue) not in ignored_keys
+    ]
+    next_activity = [
+        pr_or_issue
+        for pr_or_issue in all_next
+        if _get_item_key_for_ignoring(pr_or_issue) not in ignored_keys
     ]
 
     return render_template(
@@ -55,6 +72,7 @@ def build_report(hours: int = 24) -> str:
         subtitle=_build_subtitle(hours, time_ago),
         done_activity=done_activity,
         next_activity=next_activity,
+        ignored_items=ignored_items,
         since=time_ago,
         hours=hours,
         settings=get_settings(),
@@ -124,3 +142,12 @@ def _fetch_work_on_issues(
         ]
 
     return selected_linear_activity, selected_open_issues
+
+
+def _get_item_key_for_ignoring(
+    pr_or_issue: PR | Issue,
+) -> tuple[ItemType, str]:
+    if isinstance(pr_or_issue, PR):
+        return ItemType.PR, pr_or_issue.uid
+    if isinstance(pr_or_issue, Issue):
+        return ItemType.ISSUE, pr_or_issue.ident
