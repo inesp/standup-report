@@ -1,3 +1,9 @@
+install: ## Install all dependencies
+	uv sync && npm install
+
+install-py: ## Install Python dependencies
+	uv sync
+
 up: up-flask-local  ## Run Flask locally
 
 up-flask-local: ## Stands up flask
