@@ -1,9 +1,12 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import auto
+from typing import ClassVar
 
 from standup_report.date_utils import ago
 from standup_report.enum_utils import SafeIntEnum
+from standup_report.ignore_mixin import IgnoreMixin
+from standup_report.ignore_mixin import ItemType
 
 
 class LinearState(SafeIntEnum):
@@ -38,7 +41,7 @@ class IssueAttachment:
 
 
 @dataclass
-class Issue:
+class Issue(IgnoreMixin):
     title: str
     ident: str
     url: str
@@ -52,6 +55,17 @@ class Issue:
     @property
     def pr_attachment_urls(self) -> set[str]:
         return {a.url for a in self.pr_attachments}
+
+    # Ignore properties
+    ignore_item_type: ClassVar[ItemType] = ItemType.ISSUE
+
+    @property
+    def ignore_item_id(self) -> str:
+        return self.ident
+
+    @property
+    def ignore_item_title(self) -> str:
+        return self.title
 
 
 @dataclass

@@ -3,9 +3,12 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import datetime
+from typing import ClassVar
 
 from standup_report.date_utils import ago
 from standup_report.enum_utils import SafeStrEnum
+from standup_report.ignore_mixin import IgnoreMixin
+from standup_report.ignore_mixin import ItemType
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +26,7 @@ class PRReviewDecision(SafeStrEnum):
 
 
 @dataclass
-class PR:
+class PR(IgnoreMixin):
     number: int
     repo_slug: str
     title: str
@@ -43,3 +46,14 @@ class PR:
     @property
     def last_change_ago(self) -> str:
         return ago(self.last_change)
+
+    # Ignore properties
+    ignore_item_type: ClassVar[ItemType] = ItemType.PR
+
+    @property
+    def ignore_item_id(self) -> str:
+        return self.uid
+
+    @property
+    def ignore_item_title(self) -> str:
+        return self.title
