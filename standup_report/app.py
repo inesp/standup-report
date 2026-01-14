@@ -23,6 +23,7 @@ def create_app() -> Flask:
     app.register_blueprint(home_bp)
     app.register_blueprint(db)
     app.register_blueprint(report_bp)
+    app.register_blueprint(ignore_api)
 
     @app.errorhandler(StandupReportError)
     def handle_error(error):
