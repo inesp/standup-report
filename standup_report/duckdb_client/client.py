@@ -1,5 +1,6 @@
 import logging
 import os
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from dataclasses import field
@@ -12,12 +13,12 @@ logger = logging.getLogger(__name__)
 DB_FILE_PATH = "standup_report.duckdb"
 
 
-def get_connection_obj():
+def get_connection_obj() -> duckdb.DuckDBPyConnection:
     return duckdb.connect(database=DB_FILE_PATH)
 
 
 @contextmanager
-def get_connection():
+def get_connection() -> Iterator[duckdb.DuckDBPyConnection]:
     conn = get_connection_obj()
     try:
         yield conn
@@ -26,10 +27,20 @@ def get_connection():
 
 
 # Table definitions
-TABLE_SCHEMAS = {}
+TABLE_SCHEMAS = {
+    "ignored_items": """
+        CREATE TABLE IF NOT EXISTS ignored_items (
+            item_type VARCHAR NOT NULL,
+            item_id VARCHAR NOT NULL,
+            item_title VARCHAR NOT NULL,
+            ignored_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (item_type, item_id)
+        )
+    """
+}
 
 
-def create_tables():
+def create_tables() -> None:
     """Create all required DuckDB tables."""
     with get_connection() as conn:
 
@@ -40,7 +51,7 @@ def create_tables():
         logger.info("All DuckDB tables created/verified")
 
 
-def recreate_tables():
+def recreate_tables() -> None:
     """Drop the database file and recreate all tables."""
 
     # Close any existing connections by creating a temporary one and closing it
@@ -72,7 +83,7 @@ def health_check() -> HealthState:
         try:
             # Test basic query
             result = conn.execute("SELECT 1 as test").fetchone()
-            test_passed = result[0] == 1
+            test_passed = result is not None and result[0] == 1
 
             create_tables()
 
@@ -83,12 +94,13 @@ def health_check() -> HealthState:
             table_names: list[str] = [table[0] for table in tables]
 
             row_counts: dict[str, int] = {}
-            for table_name in ["prs", "reviews"]:
+            for table_name in ["ignored_items"]:
                 if table_name in table_names:
-                    count = conn.execute(
+                    count_result = conn.execute(
                         f"SELECT COUNT(*) FROM {table_name}"
-                    ).fetchone()[0]
-                    row_counts[table_name] = count
+                    ).fetchone()
+                    if count_result:
+                        row_counts[table_name] = count_result[0]
 
             return HealthState(
                 status="healthy" if test_passed else "error",

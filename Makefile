@@ -1,3 +1,9 @@
+install: ## Install all dependencies
+	uv sync && npm install
+
+install-py: ## Install Python dependencies
+	uv sync
+
 up: up-flask-local  ## Run Flask locally
 
 up-flask-local: ## Stands up flask
@@ -8,7 +14,5 @@ up-flask-local: ## Stands up flask
 upgrade-py:
 	uv lock --upgrade
 
-lint: ## Lint code
-	uv run ruff check --fix .
-	uv run black .
-	uv run mypy .
+lint: ## Lint and format all code
+	uv run ruff check --fix .; uv run black . ; uv run mypy . ; npm run format

@@ -18,9 +18,13 @@
   {% set item_class = "" %}
 {% endif %}
 
-<p class="mb-1 activity-item {{ item_class }} ">
+<p class="mb-1 activity-item {{ item_class }}">
+
+  {% include '_ignore_btn.html' %}
+
   {{ emoji }}
-{% if item.__class__.__name__ == PR_CLASS_NAME %}
+
+  {% if item.__class__.__name__ == PR_CLASS_NAME %}
   [{{ item.repo_slug }}]
   {% if item.state == 'MERGED' %}merged{% elif item.created_at > since and item.state != 'CLOSED' %}created{% else %}worked on{% endif %}
   PR
@@ -34,5 +38,7 @@
 {% else %}
   Not implemented
 {% endif %}
+
   <span class="text-gray-400 last-change-ago">- {{ item.last_change_ago }}</span>
+
 </p>

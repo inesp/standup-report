@@ -16,7 +16,11 @@
 {% endif %}
 
 <p class="mb-1">
+
+   {% include '_ignore_btn.html' %}
+
   {{ emoji }}
+
 {% if item.__class__.__name__ == PR_CLASS_NAME %}
   [{{ item.repo_slug }}]
   continue working on
@@ -31,4 +35,5 @@
 {% else %}
   Not implemented
 {% endif %}
+
 </p>
