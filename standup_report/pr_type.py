@@ -9,6 +9,7 @@ from standup_report.date_utils import ago
 from standup_report.enum_utils import SafeStrEnum
 from standup_report.ignore_mixin import IgnoreMixin
 from standup_report.ignore_mixin import ItemType
+from standup_report.note_utils import NoteMixin
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class PRReviewDecision(SafeStrEnum):
 
 
 @dataclass
-class PR(IgnoreMixin):
+class PR(IgnoreMixin, NoteMixin):
     number: int
     repo_slug: str
     title: str

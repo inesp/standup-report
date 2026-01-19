@@ -7,6 +7,7 @@ from standup_report.date_utils import ago
 from standup_report.enum_utils import SafeIntEnum
 from standup_report.ignore_mixin import IgnoreMixin
 from standup_report.ignore_mixin import ItemType
+from standup_report.note_utils import NoteMixin
 
 
 class LinearState(SafeIntEnum):
@@ -41,7 +42,7 @@ class IssueAttachment:
 
 
 @dataclass
-class Issue(IgnoreMixin):
+class Issue(IgnoreMixin, NoteMixin):
     title: str
     ident: str
     url: str

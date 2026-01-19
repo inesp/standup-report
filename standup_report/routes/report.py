@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Iterable
 from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
@@ -14,6 +15,7 @@ from standup_report.ignore_mixin import ItemType
 from standup_report.issue_type import Issue
 from standup_report.issue_type import IssueActivity
 from standup_report.issue_type import LinearState
+from standup_report.note_utils import NoteCategory
 from standup_report.pr_type import PR
 from standup_report.pr_type import PRState
 from standup_report.settings import get_settings
@@ -52,19 +54,24 @@ def build_report(hours: int = 24) -> str:
     ]
 
     ignored_items: set[tuple[ItemType, str, str]] = duckdb_client.get_ignored_items()
+    notes: dict[tuple[ItemType, str, NoteCategory], str] = duckdb_client.get_notes()
     ignored_keys: set[tuple[ItemType, str]] = {
         (item_type, item_id) for item_type, item_id, _ in ignored_items
     }
-    done_activity = [
+
+    done_activity: list[PR | IssueActivity] = [
         pr_or_issue
         for pr_or_issue in all_done
         if _get_item_key_for_ignoring(pr_or_issue) not in ignored_keys
     ]
-    next_activity = [
+    next_activity: list[PR | Issue] = [
         pr_or_issue
         for pr_or_issue in all_next
         if _get_item_key_for_ignoring(pr_or_issue) not in ignored_keys
     ]
+
+    _add_notes_to_items(done_activity, notes, category=NoteCategory.DONE)
+    _add_notes_to_items(next_activity, notes, category=NoteCategory.NEXT)
 
     return render_template(
         "report.html",
@@ -151,3 +158,14 @@ def _get_item_key_for_ignoring(  # noqa: RET503
         return ItemType.PR, pr_or_issue.uid
     if isinstance(pr_or_issue, Issue):
         return ItemType.ISSUE, pr_or_issue.ident
+
+
+def _add_notes_to_items(
+    all_done: Iterable[PR | Issue],
+    notes: dict[tuple[ItemType, str, NoteCategory], str],
+    *,
+    category: NoteCategory,
+) -> None:
+    for item in all_done:
+        note_key = (item.ignore_item_type, item.ignore_item_id, category)
+        item.note = notes.get(note_key, "")
