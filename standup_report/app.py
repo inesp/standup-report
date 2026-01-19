@@ -8,6 +8,7 @@ from standup_report.exceptions import StandupReportError
 from standup_report.routes.db import db
 from standup_report.routes.home import home_bp
 from standup_report.routes.ignore_api import ignore_api
+from standup_report.routes.notes_api import notes_api
 from standup_report.routes.report import report_bp
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ def create_app() -> Flask:
     app.register_blueprint(db)
     app.register_blueprint(report_bp)
     app.register_blueprint(ignore_api)
+    app.register_blueprint(notes_api)
 
     @app.errorhandler(StandupReportError)
     def handle_error(error: StandupReportError) -> tuple[str, int]:
