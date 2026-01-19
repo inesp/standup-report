@@ -11,5 +11,5 @@ class NoteCategory(SafeStrEnum):
 
 
 @dataclass
-class NoteMixin(ABC):
+class NoteMixin(ABC):  # noqa: B024
     note: str = field(default="", kw_only=True)

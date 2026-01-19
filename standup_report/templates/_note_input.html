@@ -1,0 +1,14 @@
+{% if item.note %}
+<span class="note-display hidden">{{ item.note }}</span>
+{% endif %}
+<input
+    type="text"
+    class="note-input py-1 border-0 placeholder-gray-400 w-[32rem]
+           {% if not item.note %}note-empty{% endif %}"
+    placeholder="Add note..."
+    data-item-type="{{ item.ignore_item_type }}"
+    data-item-id="{{ item.ignore_item_id }}"
+    data-category="{{ note_category }}"
+    value="{{ item.note }}"
+    title="{{ item.note }}"
+>
