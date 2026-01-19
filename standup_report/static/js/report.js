@@ -31,6 +31,12 @@ slackFormat.addEventListener("change", () => {
   document.querySelectorAll(".slack-link").forEach((el) => {
     el.classList.toggle("hidden", !slackFormat.checked);
   });
+
+  // Disable note editing when slack format is on
+  if (slackFormat.checked) {
+    showNoteInputs.checked = false;
+  }
+  showNoteInputs.dispatchEvent(new Event("change"));
 });
 
 showNoteInputs.addEventListener("change", () => {
