@@ -5,12 +5,14 @@ from .ignoring import add_ignored_item
 from .ignoring import get_ignored_items
 from .ignoring import remove_ignored_item
 from .notes import add_note
+from .notes import delete_all_notes
 from .notes import get_notes
 from .notes import remove_note
 
 __all__ = [
     "add_ignored_item",
     "add_note",
+    "delete_all_notes",
     "duckdb_health_check",
     "get_ignored_items",
     "get_notes",

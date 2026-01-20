@@ -43,3 +43,12 @@ def get_notes() -> dict[tuple[ItemType, str, NoteCategory], str]:
         return {
             (ItemType(row[0]), row[1], NoteCategory(row[2])): row[3] for row in result
         }
+
+
+def delete_all_notes() -> int:
+    with get_connection() as conn:
+        result = conn.execute("SELECT COUNT(*) FROM notes").fetchone()
+        count = result[0] if result else 0
+        conn.execute("TRUNCATE notes")
+        logger.info(f"Deleted all notes ({count} total)")
+        return count

@@ -13,6 +13,12 @@ notes_api = Blueprint("notes_api", __name__)
 logger = logging.getLogger(__name__)
 
 
+@notes_api.route("/api/notes/delete-all", methods=["POST"])
+def delete_all_notes() -> Response:
+    count = duckdb_client.delete_all_notes()
+    return jsonify({"success": True, "deleted_count": count})
+
+
 @notes_api.route("/api/note/<item_type>/<path:item_id>/<category>", methods=["POST"])
 def handle_note(
     item_type: str, item_id: str, category: str
