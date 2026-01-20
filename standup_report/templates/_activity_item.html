@@ -18,27 +18,29 @@
   {% set item_class = "" %}
 {% endif %}
 
-<p class="mb-1 activity-item {{ item_class }}">
+<p class="mb-2 activity-item {{ item_class }}">
 
   {% include '_ignore_btn.html' %}
 
   {{ emoji }}
 
   {% if item.__class__.__name__ == PR_CLASS_NAME %}
-  [{{ item.repo_slug }}]
-  {% if item.state == 'MERGED' %}merged{% elif item.created_at > since and item.state != 'CLOSED' %}created{% else %}worked on{% endif %}
-  PR
-  {% with link_url=item.url, link_text="#" ~ item.number ~ " " ~ item.title %}{% include '_link_with_slack.html' %}{% endwith %}
-{% elif item.__class__.__name__ == ISSUE_ACTIVITY_CLASS_NAME %}
-  {{ item.activity|lower|replace('_', ' ') }} issue
-  {% with link_url=item.url, link_text=item.long_title %}{% include '_link_with_slack.html' %}{% endwith %}
-  {% if item.pr_attachments %}
-    <span class="text-gray-500 text-sm pr-attachments">(PR{% if item.pr_attachments|length > 1 %}s{% endif %}: {% for pr in item.pr_attachments %}{% with link_url=pr.url, link_text=pr.short_title %}{% include '_link_with_slack.html' %}{% endwith %}{% if not loop.last %}, {% endif %}{% endfor %})</span>
+    [{{ item.repo_slug }}]
+    {% if item.state == 'MERGED' %}merged{% elif item.created_at > since and item.state != 'CLOSED' %}created{% else %}worked on{% endif %}
+    PR
+    {% with link_url=item.url, link_text="#" ~ item.number ~ " " ~ item.title %}{% include '_link_with_slack.html' %}{% endwith %}
+  {% elif item.__class__.__name__ == ISSUE_ACTIVITY_CLASS_NAME %}
+    {{ item.activity|lower|replace('_', ' ') }} issue
+    {% with link_url=item.url, link_text=item.long_title %}{% include '_link_with_slack.html' %}{% endwith %}
+    {% if item.pr_attachments %}
+      <span class="text-gray-500 text-sm pr-attachments">(PR{% if item.pr_attachments|length > 1 %}s{% endif %}: {% for pr in item.pr_attachments %}{% with link_url=pr.url, link_text=pr.short_title %}{% include '_link_with_slack.html' %}{% endwith %}{% if not loop.last %}, {% endif %}{% endfor %})</span>
+    {% endif %}
+  {% else %}
+    Not implemented
   {% endif %}
-{% else %}
-  Not implemented
-{% endif %}
 
-  <span class="text-gray-400 last-change-ago">- {{ item.last_change_ago }}</span>
+  {% with note_category="done" %}{% include '_note_input.html' %}{% endwith %}
+
+  <span class="text-gray-400 last-change-ago hidden">{{ item.last_change_ago }}</span>
 
 </p>

@@ -1,0 +1,21 @@
+.note-input {
+  text-overflow: ellipsis;
+}
+
+.note-input.note-readonly {
+  border-color: transparent;
+  padding-left: 0;
+  padding-right: 0;
+  background: transparent;
+}
+
+.note-input.note-saving {
+  border-color: #00811a;
+  background: #d4ffdd;
+  animation: pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

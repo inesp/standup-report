@@ -2,6 +2,7 @@ const showIgnoreBtns = document.getElementById("show-ignore-btns");
 const showTimestamps = document.getElementById("show-timestamps");
 const showCreated = document.getElementById("show-created");
 const slackFormat = document.getElementById("slack-format");
+const showNoteInputs = document.getElementById("show-note-inputs");
 
 showIgnoreBtns.addEventListener("change", () => {
   document.querySelectorAll(".ignore-btn").forEach((el) => {
@@ -29,6 +30,33 @@ slackFormat.addEventListener("change", () => {
   });
   document.querySelectorAll(".slack-link").forEach((el) => {
     el.classList.toggle("hidden", !slackFormat.checked);
+  });
+
+  // Disable note editing when slack format is on
+  if (slackFormat.checked) {
+    showNoteInputs.checked = false;
+  }
+  showNoteInputs.dispatchEvent(new Event("change"));
+});
+
+showNoteInputs.addEventListener("change", () => {
+  const isEditing = showNoteInputs.checked;
+
+  // Toggle inputs: show when editing, hide when readonly (except empty ones always use input)
+  document.querySelectorAll(".note-input").forEach((el) => {
+    const isEmpty = el.classList.contains("note-empty");
+    if (isEmpty) {
+      // Empty inputs: show only when editing
+      el.classList.toggle("hidden", !isEditing);
+    } else {
+      // Inputs with content: show when editing, hide when readonly
+      el.classList.toggle("hidden", !isEditing);
+    }
+  });
+
+  // Toggle display spans: show when readonly, hide when editing
+  document.querySelectorAll(".note-display").forEach((el) => {
+    el.classList.toggle("hidden", isEditing);
   });
 });
 
@@ -117,4 +145,81 @@ document.querySelectorAll(".ignore-btn").forEach((btn) => {
 
 document.querySelectorAll(".unignore-btn").forEach((btn) => {
   btn.addEventListener("click", (e) => handleIgnoreClick(e, "unignore"));
+});
+
+// Handle note input changes
+async function saveNote(input) {
+  const itemType = input.dataset.itemType;
+  const itemId = input.dataset.itemId;
+  const category = input.dataset.category;
+  const note = input.value.trim();
+
+  const url = `/api/note/${itemType}/${itemId}/${category}`;
+
+  // Show loading state
+  input.classList.add("note-saving");
+  input.disabled = true;
+  const startTime = Date.now();
+  const minDuration = 500;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ note }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      showMessage(data.error);
+    } else {
+      const parent = input.closest(".activity-item");
+      let span = parent.querySelector(".note-display");
+
+      if (note) {
+        input.classList.remove("note-empty");
+        // Create or update span
+        if (!span) {
+          span = document.createElement("span");
+          span.className = "note-display";
+          input.insertAdjacentElement("beforebegin", span);
+        }
+        span.textContent = note;
+        // Show/hide based on editing mode
+        span.classList.toggle("hidden", showNoteInputs.checked);
+        input.classList.toggle("hidden", !showNoteInputs.checked);
+      } else {
+        input.classList.add("note-empty");
+        // Remove span if exists
+        if (span) {
+          span.remove();
+        }
+        // Hide input if not editing
+        if (!showNoteInputs.checked) {
+          input.classList.add("hidden");
+        }
+      }
+      // Update title for tooltip
+      input.title = note;
+    }
+  } catch (error) {
+    showMessage("Network error saving note");
+  } finally {
+    // Remove loading state after minimum duration
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, minDuration - elapsed);
+    setTimeout(() => {
+      input.classList.remove("note-saving");
+      input.disabled = false;
+    }, remaining);
+  }
+}
+
+document.querySelectorAll(".note-input").forEach((input) => {
+  input.addEventListener("blur", () => saveNote(input));
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      input.blur();
+    }
+  });
 });

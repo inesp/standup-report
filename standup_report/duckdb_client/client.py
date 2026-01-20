@@ -36,7 +36,16 @@ TABLE_SCHEMAS = {
             ignored_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (item_type, item_id)
         )
-    """
+    """,
+    "notes": """
+        CREATE TABLE IF NOT EXISTS notes (
+            item_type VARCHAR NOT NULL,
+            item_id VARCHAR NOT NULL,
+            category VARCHAR NOT NULL,
+            note TEXT,
+            PRIMARY KEY (item_type, item_id, category)
+        )
+    """,
 }
 
 
@@ -94,7 +103,7 @@ def health_check() -> HealthState:
             table_names: list[str] = [table[0] for table in tables]
 
             row_counts: dict[str, int] = {}
-            for table_name in ["ignored_items"]:
+            for table_name in ["ignored_items", "notes"]:
                 if table_name in table_names:
                     count_result = conn.execute(
                         f"SELECT COUNT(*) FROM {table_name}"
