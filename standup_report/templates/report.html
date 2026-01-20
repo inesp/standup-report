@@ -45,6 +45,13 @@
         {% include '_filter.html' %}
       {% endwith %}
     </div>
+    <div class="flex items-center mt-3 pt-3 border-t border-gray-200 gap-4">
+      <span>Actions: </span>
+      <button id="clear-all-notes-btn"
+        class="px-3 py-1.5 text-sm text-red-600 border border-red-300 hover:bg-red-50 rounded-md transition-colors">
+        Delete all notes
+      </button>
+    </div>
   </div>
 {% endset %}
 

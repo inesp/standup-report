@@ -223,3 +223,48 @@ document.querySelectorAll(".note-input").forEach((input) => {
     }
   });
 });
+
+// Clear all notes button
+const clearAllNotesBtn = document.getElementById("clear-all-notes-btn");
+if (clearAllNotesBtn) {
+  clearAllNotesBtn.addEventListener("click", async () => {
+    if (
+      !confirm(
+        "Are you sure you want to delete all notes? This cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    clearAllNotesBtn.disabled = true;
+    clearAllNotesBtn.textContent = "Deleting...";
+
+    try {
+      const response = await fetch("/api/notes/delete-all", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Clear all note inputs and displays
+        document.querySelectorAll(".note-input").forEach((input) => {
+          input.value = "";
+          input.classList.add("note-empty");
+        });
+        document.querySelectorAll(".note-display").forEach((span) => {
+          span.innerHTML = "";
+        });
+        showMessage(`Deleted ${data.deleted_count} note(s)`, "success");
+      } else {
+        const data = await response.json();
+        showMessage(data.error || "Failed to delete notes");
+      }
+    } catch (error) {
+      showMessage("Network error, please try again");
+    } finally {
+      clearAllNotesBtn.disabled = false;
+      clearAllNotesBtn.textContent = "Delete all notes";
+    }
+  });
+}
