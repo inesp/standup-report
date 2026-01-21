@@ -2,6 +2,7 @@ from flask import Blueprint
 from flask import render_template
 
 from standup_report import github
+from standup_report import google
 from standup_report import linear
 from standup_report.duckdb_client import duckdb_health_check
 from standup_report.exceptions import RemoteException
@@ -24,6 +25,13 @@ def index() -> str:
 
     gh_query, gh_response, gh_exc = _check_github_conn()
     linear_query, linear_response, linear_exc = _check_linear_conn()
+    google_auth_status = google.get_auth_status()
+
+    google_endpoint: str | None = None
+    google_calendars: list[str] | None = None
+    google_exc: StandupReportError | None = None
+    if google_auth_status.is_authenticated:
+        google_endpoint, google_calendars, google_exc = _check_google_conn()
 
     return render_template(
         "home.html",
@@ -38,6 +46,10 @@ def index() -> str:
         linear_response=linear_response,
         linear_exc=linear_exc,
         duckdb_health=duckdb_health,
+        google_auth_status=google_auth_status,
+        google_endpoint=google_endpoint,
+        google_calendars=google_calendars,
+        google_exc=google_exc,
     )
 
 
@@ -74,3 +86,18 @@ def _check_linear_conn() -> tuple[str, dict | None, StandupReportError | None]:
         linear_exc = exc
 
     return linear_query, linear_response, linear_exc
+
+
+def _check_google_conn() -> tuple[str, list[str] | None, StandupReportError | None]:
+    rest_url = "users/me/calendarList"
+    google_calendars: list[str] | None = None
+    google_exc: None | StandupReportError = None
+    try:
+        google_response: dict = google.client.get_google_rest_response(
+            path=rest_url
+        ).data
+        google_calendars = [item["summary"] for item in google_response["items"]]
+    except (RemoteException, SettingsError) as exc:
+        google_exc = exc
+    return rest_url, google_calendars, google_exc
+

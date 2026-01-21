@@ -216,10 +216,14 @@ coverage-reports
 coverage*
 .DS_Store
 
+node_modules
+
 # DuckDB database files
 *.duckdb
 prs_analytics.duckdb
 
 config.yml
 
-node_modules
+# Google OAuth credentials and tokens
+credentials.json
+google_token.json

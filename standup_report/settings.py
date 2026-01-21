@@ -15,6 +15,29 @@ logger = logging.getLogger(__name__)
 
 _CONFIG_FILE_NAME = "config.yml"
 
+_GOOGLE_CREDENTIALS_FILE = "credentials.json"
+_GOOGLE_TOKEN_FILE = "google_token.json"
+
+
+@dataclass
+class GoogleSettings:
+
+    @property
+    def CREDENTIALS_FILE_NAME(self) -> str:
+        return _GOOGLE_CREDENTIALS_FILE
+
+    @property
+    def TOKEN_FILE_NAME(self) -> str:
+        return _GOOGLE_TOKEN_FILE
+
+    @property
+    def HAS_CREDENTIALS(self) -> bool:
+        return os.path.exists(self.CREDENTIALS_FILE_NAME)
+
+    @property
+    def HAS_TOKEN(self) -> bool:
+        return os.path.exists(self.TOKEN_FILE_NAME)
+
 
 @dataclass
 class Settings:
@@ -24,10 +47,14 @@ class Settings:
     LINEAR_TOKEN: str
     LINEAR_EMAIL: str
     IGNORED_REPOS: set[str]
+    GOOGLE: GoogleSettings
 
     @property
     def as_dict(self) -> dict[str, str | int | list[str]]:
-        return dataclasses.asdict(self)
+        # Exclude google from the dict display (it's optional and has its own UI)
+        d = dataclasses.asdict(self)
+        # d.pop("GOOGLE", None)
+        return d
 
     @property
     def CONFIG_FILE_NAME(self) -> str:
@@ -76,4 +103,5 @@ def get_settings() -> Settings:
         LINEAR_TOKEN=env_vars["LINEAR_TOKEN"],
         LINEAR_EMAIL=env_vars["LINEAR_EMAIL"],
         IGNORED_REPOS=set(ignored_repos),
+        GOOGLE=GoogleSettings(),
     )
