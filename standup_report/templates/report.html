@@ -43,6 +43,9 @@
       {% with filter_text="Include created issues", filter_id="show-created" %}
         {% include '_filter.html' %}
       {% endwith %}
+      {% with filter_text="Include meetings", filter_id="show-meetings" %}
+        {% include '_filter.html' %}
+      {% endwith %}
     </div>
     <div class="flex items-center gap-6 mt-3 pt-3 border-t border-gray-200">
       {% with filter_text="Notes are editable", filter_id="show-note-inputs" %}

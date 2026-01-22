@@ -17,6 +17,8 @@
 {# choose item-class #}
 {% if item.__class__.__name__ == ISSUE_ACTIVITY_CLASS_NAME and item.activity == 'CREATED' %}
   {% set item_class = "item-created-issue" %}
+{% elif item.__class__.__name__ == MEETING_CLASS_NAME %}
+  {% set item_class = "item-meeting" %}
 {% else %}
   {% set item_class = "" %}
 {% endif %}
