@@ -77,6 +77,39 @@
     {% endif %}
   </div>
 
+  <!-- Google Calendar Connection Status (Optional) -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div class="flex items-center mb-4">
+      <div class="w-3 h-3 {% if google_auth_status.is_authenticated %}bg-green-500{% elif google_auth_status.needs_auth %}bg-yellow-500{% else %}bg-gray-400{% endif %} rounded-full mr-3"></div>
+      <h3 class="text-lg font-semibold text-gray-900">Google Calendar</h3>
+      <span class="ml-2 bg-gray-100 text-gray-600 text-xs font-medium px-2 py-1 rounded">Optional</span>
+      <span class="ml-auto {% if google_auth_status.is_authenticated %}bg-green-100 text-green-800{% elif google_auth_status.needs_auth %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-600{% endif %} text-xs font-medium px-2 py-1 rounded">
+        {% if google_auth_status.is_authenticated %}Connected{% elif google_auth_status.needs_auth %}Needs Auth{% else %}Not Configured{% endif %}
+      </span>
+    </div>
+
+    {% if google_auth_status.is_authenticated %}
+      {% if google_calendars and not google_exc %}
+        <div class="text-sm text-gray-600 mb-2">Successfully received Google Calendar response. Found calendars:</div>
+        <code class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm">{{ google_calendars }}</code>
+      {% else %}
+        <div class="bg-red-50 border border-red-200 rounded p-3">
+          <p class="text-sm text-red-800 mb-2">REST endpoint <code class="code-red">{{ google_endpoint }}</code>.</p>
+          {% if google_exc %}
+            <code class="code-red text-red-800 rounded text-xs block mb-2">{{ google_exc.user_error_desc() }}</code>
+          {% endif %}
+        </div>
+      {% endif %}
+    <div class="text-sm text-gray-600 my-3">If you want to do the OAuth again, just delete the file <code class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm">{{ settings.GOOGLE.TOKEN_FILE_NAME }}</code></div>
+    {% elif google_auth_status.needs_auth %}
+      <div class="text-sm text-gray-600 mb-3">{{ google_auth_status.message }}</div>
+      <a href="{{ url_for('google_auth.start_auth') }}" class="text-blue-600 hover:text-blue-800 text-sm">Connect Google Calendar →</a>
+    {% elif google_auth_status.missing_credentials %}
+      <div class="text-sm text-gray-600 mb-3">{{ google_auth_status.message }}</div>
+      <p class="text-sm text-gray-500">See <a href="https://github.com/inesp/standup-report#google-calendar" class="text-blue-600 hover:underline">README</a> for setup instructions.</p>
+    {% endif %}
+  </div>
+
   <!-- DuckDB Status -->
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
     {% set duck_ok = duckdb_health and duckdb_health.status == 'healthy' %}

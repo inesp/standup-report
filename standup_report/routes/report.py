@@ -11,6 +11,8 @@ from flask import render_template
 from standup_report import duckdb_client
 from standup_report import github
 from standup_report import linear
+from standup_report.calendar_type import Meeting
+from standup_report.google import get_calendar_events
 from standup_report.ignore_mixin import ItemType
 from standup_report.issue_type import Issue
 from standup_report.issue_type import IssueActivity
@@ -26,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 @report_bp.route("/report")
 @report_bp.route("/report/<int:hours>")
-def build_report(hours: int = 24) -> str:
+def build_report(hours: int = 8) -> str:
     time_ago = datetime.now(UTC) - timedelta(hours=hours)
 
     my_latest_prs: list[PR] = list(github.fetch_authored_prs(time_ago))
@@ -44,9 +46,14 @@ def build_report(hours: int = 24) -> str:
         time_ago, my_latest_prs, my_open_prs
     )
 
-    all_done: list[PR | IssueActivity] = [
+    my_meetings = []
+    if get_settings().GOOGLE.is_setup:
+        my_meetings = get_calendar_events(time_ago)
+
+    all_done: list[PR | IssueActivity | Meeting] = [
         *my_latest_prs,
         *selected_linear_activity,
+        *my_meetings,
     ]
     all_next: list[PR | Issue] = [
         *my_open_prs,
@@ -59,7 +66,7 @@ def build_report(hours: int = 24) -> str:
         (item_type, item_id) for item_type, item_id, _ in ignored_items
     }
 
-    done_activity: list[PR | IssueActivity] = [
+    done_activity: list[PR | IssueActivity | Meeting] = [
         pr_or_issue
         for pr_or_issue in all_done
         if _get_item_key_for_ignoring(pr_or_issue) not in ignored_keys
@@ -79,6 +86,7 @@ def build_report(hours: int = 24) -> str:
         subtitle=_build_subtitle(hours, time_ago),
         done_activity=done_activity,
         next_activity=next_activity,
+        meetings=my_meetings,
         ignored_items=ignored_items,
         since=time_ago,
         hours=hours,
@@ -152,16 +160,18 @@ def _fetch_work_on_issues(
 
 
 def _get_item_key_for_ignoring(  # noqa: RET503
-    pr_or_issue: PR | Issue,
+    pr_or_issue: PR | Issue | Meeting,
 ) -> tuple[ItemType, str]:
     if isinstance(pr_or_issue, PR):
         return ItemType.PR, pr_or_issue.uid
     if isinstance(pr_or_issue, Issue):
         return ItemType.ISSUE, pr_or_issue.ident
+    if isinstance(pr_or_issue, Meeting):
+        return ItemType.MEETING, pr_or_issue.remote_id
 
 
 def _add_notes_to_items(
-    all_done: Iterable[PR | Issue],
+    all_done: Iterable[PR | Issue | Meeting],
     notes: dict[tuple[ItemType, str, NoteCategory], str],
     *,
     category: NoteCategory,

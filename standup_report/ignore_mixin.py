@@ -9,6 +9,7 @@ from standup_report.enum_utils import SafeStrEnum
 class ItemType(SafeStrEnum):
     PR = "PR"
     ISSUE = "Issue"
+    MEETING = "Meeting"
 
 
 @dataclass

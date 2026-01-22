@@ -19,6 +19,12 @@ class GQLResponse:
     data: dict
 
 
+@dataclass
+class RESTResponse:
+    response: Response
+    data: dict
+
+
 def post_gql_query(
     *,
     gql_url: str,
@@ -75,3 +81,36 @@ def post_gql_query(
         )
 
     return GQLResponse(data=gql_data, response=response)
+
+
+def get_rest_response(
+    *,
+    full_url: str,
+    headers: dict,
+    params: dict | None = None,
+) -> RESTResponse:
+    """Make a GET request to a REST API."""
+    logger.info(f"GET {full_url} {params=}")
+    try:
+        response: Response = requests.get(
+            url=full_url,
+            headers=headers,
+            params=params,
+            timeout=30,
+        )
+    except Exception as exc:
+        logger.warning(f"Exception occurred: {exc}", exc_info=exc)
+        raise RemoteException(f"Request to `{full_url}` raised an exception") from exc
+
+    check_status_code_of_response(response)
+    response_data, json_err = extract_json_body(response)
+
+    if json_err:
+        raise RemoteException(
+            "Response is not a valid JSON", url=full_url, query=str(params)
+        ) from json_err
+
+    if response_data is None:
+        raise RemoteException("Response was None", url=full_url, query=str(params))
+
+    return RESTResponse(data=response_data, response=response)
