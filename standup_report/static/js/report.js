@@ -3,6 +3,7 @@ const showTimestamps = document.getElementById("show-timestamps");
 const showCreated = document.getElementById("show-created");
 const slackFormat = document.getElementById("slack-format");
 const showNoteInputs = document.getElementById("show-note-inputs");
+const showMeetingTimes = document.getElementById("show-meeting-times");
 
 showIgnoreBtns.addEventListener("change", () => {
   document.querySelectorAll(".ignore-btn").forEach((el) => {
@@ -13,6 +14,12 @@ showIgnoreBtns.addEventListener("change", () => {
 showTimestamps.addEventListener("change", () => {
   document.querySelectorAll(".last-change-ago").forEach((el) => {
     el.classList.toggle("hidden", !showTimestamps.checked);
+  });
+});
+
+showMeetingTimes.addEventListener("change", () => {
+  document.querySelectorAll(".meeting-time").forEach((el) => {
+    el.classList.toggle("hidden", !showMeetingTimes.checked);
   });
 });
 

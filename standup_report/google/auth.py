@@ -10,6 +10,7 @@ from enum import StrEnum
 # Allow OAuth over HTTP for local development (app runs in "test mode")
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
+from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 
@@ -125,12 +126,10 @@ def get_credentials() -> Credentials | None:
         return None
 
     try:
-        creds = Credentials.from_authorized_user_file(
+        creds = Credentials.from_authorized_user_file(  # type: ignore[no-untyped-call]
             google_settings.TOKEN_FILE_NAME, SCOPES
         )
         if creds.expired and creds.refresh_token:
-            from google.auth.transport.requests import Request
-
             creds.refresh(Request())
         return creds if creds.valid else None
     except Exception as e:

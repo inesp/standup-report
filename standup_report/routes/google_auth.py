@@ -22,7 +22,7 @@ def start_auth() -> Response | tuple[str, int]:
     redirect_uri = url_for("google_auth.oauth_callback", _external=True)
     flow = google.start_oauth_flow(redirect_uri)
 
-    authorization_url, state = flow.authorization_url(  # type: ignore[no-untyped-call]
+    authorization_url, _ = flow.authorization_url(  # type: ignore[no-untyped-call]
         access_type="offline",
         include_granted_scopes="true",
         prompt="consent",

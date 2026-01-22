@@ -21,6 +21,7 @@ _GOOGLE_TOKEN_FILE = "google_token.json"
 
 @dataclass
 class GoogleSettings:
+    IGNORED_CALENDARS: set[str]
 
     @property
     def CREDENTIALS_FILE_NAME(self) -> str:
@@ -37,6 +38,10 @@ class GoogleSettings:
     @property
     def HAS_TOKEN(self) -> bool:
         return os.path.exists(self.TOKEN_FILE_NAME)
+
+    @property
+    def is_setup(self) -> bool:
+        return bool(self.HAS_CREDENTIALS and self.HAS_TOKEN)
 
 
 @dataclass
@@ -95,6 +100,7 @@ def get_settings() -> Settings:
     config = _load_yaml_config()
 
     ignored_repos = config.get("ignored_repos", [])
+    ignored_calendars: list[str] = config.get("ignored_calendars", [])
 
     return Settings(
         GH_LOGIN=env_vars["GH_LOGIN"],
@@ -103,5 +109,5 @@ def get_settings() -> Settings:
         LINEAR_TOKEN=env_vars["LINEAR_TOKEN"],
         LINEAR_EMAIL=env_vars["LINEAR_EMAIL"],
         IGNORED_REPOS=set(ignored_repos),
-        GOOGLE=GoogleSettings(),
+        GOOGLE=GoogleSettings(IGNORED_CALENDARS=set(ignored_calendars)),
     )

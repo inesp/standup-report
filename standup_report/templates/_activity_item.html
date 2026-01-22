@@ -1,5 +1,6 @@
 {% set ISSUE_ACTIVITY_CLASS_NAME = 'IssueActivity' %}
 {% set PR_CLASS_NAME = 'PR' %}
+{% set MEETING_CLASS_NAME = 'Meeting' %}
 
 {% set pr_state_emoji = {'OPEN': '⏳', 'MERGED': '🚀', 'CLOSED': '⛔'} %}
 {% set activity_emoji = {'CREATED': '✨', 'COMPLETED': '🎉', 'WORKED_ON': '🔨', 'COMMENTED': '💬', 'CANCELED': '🚫', 'UNKNOWN': '❓'} %}
@@ -9,6 +10,8 @@
   {% set emoji = pr_state_emoji[item.state] %}
 {% elif item.__class__.__name__ == ISSUE_ACTIVITY_CLASS_NAME %}
   {% set emoji = activity_emoji.get(item.activity, '❓') %}
+{% elif item.__class__.__name__ == MEETING_CLASS_NAME %}
+  {% set emoji = '📅' %}
 {% endif %}
 
 {# choose item-class #}
@@ -35,6 +38,14 @@
     {% if item.pr_attachments %}
       <span class="text-gray-500 text-sm pr-attachments">(PR{% if item.pr_attachments|length > 1 %}s{% endif %}: {% for pr in item.pr_attachments %}{% with link_url=pr.url, link_text=pr.short_title %}{% include '_link_with_slack.html' %}{% endwith %}{% if not loop.last %}, {% endif %}{% endfor %})</span>
     {% endif %}
+  {% elif item.__class__.__name__ == MEETING_CLASS_NAME %}
+    <span class="text-gray-500 text-sm meeting-time hidden">[{{ item.start_time.strftime('%a %H:%M') }}]</span>
+    meeting
+    {% with link_url=item.url, link_text=item.title %}{% include '_link_with_slack.html' %}{% endwith %}
+    {% if item.attendees %}
+      <span class="text-gray-500 text-sm">with {% for att in item.attendees[:5] %}{{ att.split('@')[0] }}{% if not loop.last %}, {% endif %}{% endfor %}{% if item.attendees|length > 5 %}, ...{% endif %}</span>
+    {% endif %}
+    <span class="text-gray-500 text-sm">({{ item.calendar.title }})</span>
   {% else %}
     Not implemented
   {% endif %}

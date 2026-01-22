@@ -93,11 +93,8 @@ def _check_google_conn() -> tuple[str, list[str] | None, StandupReportError | No
     google_calendars: list[str] | None = None
     google_exc: None | StandupReportError = None
     try:
-        google_response: dict = google.client.get_google_rest_response(
-            path=rest_url
-        ).data
-        google_calendars = [item["summary"] for item in google_response["items"]]
+        calendars = google.fetch_all_calendars()
+        google_calendars = [item.title for item in calendars]
     except (RemoteException, SettingsError) as exc:
         google_exc = exc
     return rest_url, google_calendars, google_exc
-

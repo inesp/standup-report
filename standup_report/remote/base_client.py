@@ -100,17 +100,17 @@ def get_rest_response(
         )
     except Exception as exc:
         logger.warning(f"Exception occurred: {exc}", exc_info=exc)
-        raise RemoteException(f"Request to `{url}` raised an exception") from exc
+        raise RemoteException(f"Request to `{full_url}` raised an exception") from exc
 
     check_status_code_of_response(response)
     response_data, json_err = extract_json_body(response)
 
     if json_err:
         raise RemoteException(
-            "Response is not a valid JSON", url=full_url, params=params
+            "Response is not a valid JSON", url=full_url, query=str(params)
         ) from json_err
 
     if response_data is None:
-        raise RemoteException("Response was None", url=full_url, params=params)
+        raise RemoteException("Response was None", url=full_url, query=str(params))
 
     return RESTResponse(data=response_data, response=response)

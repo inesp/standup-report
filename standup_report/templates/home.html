@@ -90,8 +90,8 @@
 
     {% if google_auth_status.is_authenticated %}
       {% if google_calendars and not google_exc %}
-        <div class="text-sm text-gray-600 mb-2">Successfully received Google Calendar response.</div>
-        <code class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm">Found calendars: {{ google_calendars }}</code>
+        <div class="text-sm text-gray-600 mb-2">Successfully received Google Calendar response. Found calendars:</div>
+        <code class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm">{{ google_calendars }}</code>
       {% else %}
         <div class="bg-red-50 border border-red-200 rounded p-3">
           <p class="text-sm text-red-800 mb-2">REST endpoint <code class="code-red">{{ google_endpoint }}</code>.</p>
@@ -100,6 +100,7 @@
           {% endif %}
         </div>
       {% endif %}
+    <div class="text-sm text-gray-600 my-3">If you want to do the OAuth again, just delete the file <code class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm">{{ settings.GOOGLE.TOKEN_FILE_NAME }}</code></div>
     {% elif google_auth_status.needs_auth %}
       <div class="text-sm text-gray-600 mb-3">{{ google_auth_status.message }}</div>
       <a href="{{ url_for('google_auth.start_auth') }}" class="text-blue-600 hover:text-blue-800 text-sm">Connect Google Calendar →</a>
