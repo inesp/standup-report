@@ -9,4 +9,4 @@
 
   Note: ~ is Jinja2's string concat operator (auto-converts to string)
 #}
-<a href="{{ link_url }}" class="original-link text-blue-600 hover:underline">{{ link_text }}</a><span class="slack-link hidden font-mono text-sm bg-gray-100 px-1 rounded">&lt;{{ link_url }}|<span class="text-blue-600">{{ link_text }}</span>&gt;</span>
+<a href="{{ link_url }}" class="original-link text-blue-600 hover:underline" title="{{ link_title }}">{{ link_text }}</a><span class="slack-link hidden font-mono text-sm bg-gray-100 px-1 rounded">&lt;{{ link_url }}|<span class="text-blue-600">{{ link_text }}</span>&gt;</span>
