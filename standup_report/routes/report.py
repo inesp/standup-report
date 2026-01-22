@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 @report_bp.route("/report")
 @report_bp.route("/report/<int:hours>")
-def build_report(hours: int = 24) -> str:
+def build_report(hours: int = 8) -> str:
     time_ago = datetime.now(UTC) - timedelta(hours=hours)
 
     my_latest_prs: list[PR] = list(github.fetch_authored_prs(time_ago))
