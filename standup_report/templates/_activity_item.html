@@ -43,7 +43,7 @@
   {% elif item.__class__.__name__ == MEETING_CLASS_NAME %}
     <span class="text-gray-500 text-sm meeting-time hidden">[{{ item.start_time.strftime('%a %H:%M') }}]</span>
     meeting
-    {% with link_url=item.url, link_text=item.title, link_title="Calendar " ~ item.calendar.title%}{% include '_link_with_slack.html' %}{% endwith %}
+    {% with link_url=item.url, link_text=item.title, link_title="Calendar " ~ item.calendar.title, no_slack_link=true %}{% include '_link_with_slack.html' %}{% endwith %}
     {% if item.attendees %}
       <span class="text-gray-500 text-sm">with {% for att in item.attendees[:5] %}{{ att.split('@')[0] }}{% if not loop.last %}, {% endif %}{% endfor %}{% if item.attendees|length > 5 %}, ...{% endif %}</span>
     {% endif %}
