@@ -5,6 +5,8 @@ class StandupReportError(Exception):
 class SettingsError(StandupReportError):
     """Raised when configuration/settings are invalid"""
 
+    def user_error_desc(self) -> str:
+        return str(self)
 
 class RemoteException(StandupReportError):
     def __init__(

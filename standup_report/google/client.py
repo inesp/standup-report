@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 
+from standup_report.exceptions import SettingsError
 from standup_report.google.auth import get_credentials
 from standup_report.remote.base_client import RESTResponse
 from standup_report.remote.base_client import get_rest_response
@@ -14,7 +15,8 @@ _BASE_URL = "https://www.googleapis.com/calendar/v3/"
 def get_google_rest_response(path: str, params: dict | None = None) -> RESTResponse:
     assert not path.startswith("/")
     creds = get_credentials()
-    assert creds
+    if not creds:
+        raise SettingsError(f"Google not setup")
     return get_rest_response(
         full_url=f"{_BASE_URL}{path}",
         headers={

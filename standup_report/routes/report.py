@@ -12,6 +12,7 @@ from standup_report import duckdb_client
 from standup_report import github
 from standup_report import linear
 from standup_report.calendar_type import Meeting
+from standup_report.exceptions import SettingsError
 from standup_report.google import get_calendar_events
 from standup_report.ignore_mixin import ItemType
 from standup_report.issue_type import Issue
@@ -48,7 +49,10 @@ def build_report(hours: int = 8) -> str:
 
     my_meetings = []
     if get_settings().GOOGLE.is_setup:
-        my_meetings = get_calendar_events(time_ago)
+        try:
+            my_meetings = get_calendar_events(time_ago)
+        except SettingsError:
+            logger.error(f"Google is setup, but it doesn't work")
 
     all_done: list[PR | IssueActivity | Meeting] = [
         *my_latest_prs,
